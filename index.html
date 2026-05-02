@@ -293,22 +293,64 @@
                 <li>游戏进度会自动保存在浏览器的本地存储中</li>
                 <li>建议在Chrome、Safari等现代浏览器中使用</li>
                 <li>如果遇到页面无法加载，请检查文件名是否正确（注意中文字符）</li>
+                <li></li>
             </ul>
         </div>
         <div class="footer">
             <p>k © 2026 | 基于Vue.js开发 | 数据存储于浏览器本地</p>
             <p>注意：如需分享，请将三个文件（index.html、klotski-v3.html、sudoku.html）放在一起</p>
-            <div class="site-stats">
-                <span id="busuanzi_container_site_pv" style="font-size: 14px; color: #94a3b8;">
-                    本站总访问量 <span id="busuanzi_value_site_pv" style="color: #7dd3fc;">0</span> 次
-                </span>
-                <span style="margin: 0 10px; color: #475569;">|</span>
-                <span id="busuanzi_container_site_uv" style="font-size: 14px; color: #94a3b8;">
-                    你是第 <span id="busuanzi_value_site_uv" style="color: #7dd3fc;">0</span> 位访客
-                </span>
+            <!-- 修改统计显示区域 -->
+            <div class="stats-container">
+                <div class="stat-item">
+                    <span class="stat-icon">📈</span>
+                    <span class="stat-label">累计访客：</span>
+                    <span id="total-uv-display" class="stat-number">加载中...</span>
+                    <span class="stat-icon">👤</span>
+                    <span class="stat-label">今日访客：</span>
+                    <span id="busuanzi_value_site_uv" class="stat-number">...</span>
+                    <span class="stat-icon">👁️</span>
+                    <span class="stat-label">总访问：</span>
+                    <span id="busuanzi_value_site_pv" class="stat-number">...</span>
+                </div>
             </div>
         </div>
     </div>
+    <script>
+    (function() {
+        // 确保页面完全加载
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initStats);
+        } else {
+            initStats();
+        }
+
+        function initStats() {
+            // 查找显示元素
+            var displayEl = document.getElementById('total-uv-display') ||
+                document.getElementById('total-uv-count') ||
+                document.querySelector('.stat-number');
+
+            if (!displayEl) {
+                console.warn('未找到统计显示元素');
+                return;
+            }
+
+            // 统计逻辑
+            var today = new Date().toDateString();
+            var lastDate = localStorage.getItem('last_total_uv_date');
+            var count = parseInt(localStorage.getItem('total_uv_count')) || 0;
+
+            if (lastDate !== today) {
+                count += 1;
+                localStorage.setItem('total_uv_count', count);
+                localStorage.setItem('last_total_uv_date', today);
+            }
+
+            // 立即显示
+            displayEl.textContent = count;
+        }
+    })();
+    </script>
     <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </body>
 

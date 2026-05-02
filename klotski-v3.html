@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>数字华容道</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,sans-serif}
+
+:root {
+  --bg: #0f172a;
+  --card: rgba(17,24,39,.9);
+  --bar: rgba(30,41,59,.9);
+  --tile: #1e293b;
+  --empty: rgba(0,0,0,.3);
+  --text: #e5e7eb;
+  --label: #94a3b8;
+  --accent: #7dd3fc;
+  --cyan: #67e8f9;
+}
+/* 主题2：霓虹 */
+[data-theme="neon"] {
+  --bg: #160842;
+  --card: rgba(36,21,82,.95);
+  --bar: rgba(59,36,133,.9);
+  --tile: #4f369b;
+  --empty: rgba(0,0,0,.4);
+  --text: #f0f9ff;
+  --label: #c4b5fd;
+  --accent: #a78bfa;
+  --cyan: #f472b6;
+}
+
+html,body{background:var(--bg);color:var(--text)}
+.main{position:fixed;inset:0;display:flex;flex-direction:column}
+.header{background:var(--card);padding:6px 0;text-align:center;border-bottom:1px solid rgba(255,255,255,.1);height:50px}
+.header h1{font-size:16px;color:#fff}
+.header p{font-size:10px;color:var(--cyan);margin-top:2px}
+.status-bar{display:flex;justify-content:space-around;background:var(--bar);padding:5px 0;height:50px}
+.status-item{text-align:center}
+.status-value{font-size:18px;font-weight:bold;color:var(--accent)}
+.status-label{font-size:9px;color:var(--label)}
+.game-area{flex:1;display:flex;align-items:center;justify-content:center;padding:8px;min-height:0}
+.puzzle-box{width:96%;max-width:420px;aspect-ratio:1/1}
+.grid{
+  width:100%;height:100%;display:grid;
+  background:rgba(0,0,0,.2) !important;
+  border-radius:8px;
+}
+.grid.cozy{gap:6px;border:3px solid rgba(255,255,255,.15);padding:6px}
+.grid.compact{gap:2px;border:2px solid rgba(255,255,255,.15);padding:2px}
+.tile{
+  display:flex;align-items:center;justify-content:center;
+  background:var(--tile);color:#fff;font-weight:bold;border-radius:6px;
+}
+.tile.cozy{font-size:clamp(18px,7vw,32px)}
+.tile.compact{font-size:clamp(10px,3.2vw,20px);border-radius:4px}
+.tile.empty{background:var(--empty)}
+.control{background:var(--card);padding:6px 4px;border-top:2px solid rgba(255,255,255,.1)}
+.row{display:flex;gap:4px;margin-bottom:4px}
+.btn,.sel{flex:1;padding:8px;border:none;border-radius:4px;font-size:12px;font-weight:bold;background:#475569;color:#fff}
+.btn.start{background:#059669}
+.btn.reset{background:#dc2626}
+.btn.history{background:#4b5563}
+.mode-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:6px}
+.difficulty-select{width:86px;padding:6px;border-radius:4px;background:var(--bar);color:#fff;border:none;font-size:12px}
+.mode-item{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--label)}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:99}
+.panel{background:var(--card);border-radius:10px;padding:16px;width:90%;max-width:340px;max-height:85vh;display:flex;flex-direction:column}
+.history-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:10px}
+.history-filter{display:flex;gap:6px;margin-bottom:10px}
+.history-filter select{flex:1;padding:6px;border-radius:4px;background:var(--bar);color:var(--text);border:1px solid #475569;font-size:12px}
+.history-title{font-size:14px;color:var(--accent);font-weight:bold}
+.history-list{flex:1;overflow-y:auto;padding-right:4px}
+.history-list::-webkit-scrollbar{width:4px}
+.history-empty{text-align:center;color:var(--label);padding:20px 0}
+.history-item{padding:8px;background:rgba(255,255,255,.04);border-radius:4px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.history-left{flex:1}
+.history-size{font-size:13px;color:var(--accent)}
+.history-diff{font-size:11px;color:var(--cyan)}
+.history-date{font-size:10px;color:var(--label)}
+.history-right{display:flex;align-items:center;gap:8px}
+.history-stats{text-align:right;min-width:70px}
+.history-time{font-size:14px;color:#fff;font-weight:bold}
+.history-moves{font-size:10px;color:var(--label)}
+.del-btn{background:#dc2626;color:white;border:none;border-radius:4px;padding:4px 6px;font-size:10px}
+.win{position:fixed;inset:0;background:rgba(0,0,0,.8);display:grid;place-items:center;z-index:999}
+.win-box{background:var(--card);padding:20px;border-radius:10px;text-align:center}
+.win-btn{padding:8px 16px;border:none;border-radius:4px;background:#059669;color:#fff;margin:4px}
+#particles {position:fixed;inset:0;z-index:-1;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="particles"></div>
+<div id="app" class="main">
+  <div class="header"><h1>数字华容道</h1><p>逻辑思维与空间想象能力训练</p></div>
+  <div class="status-bar">
+    <div class="status-item"><div class="status-value">{{ time }}</div><div class="status-label">时间</div></div>
+    <div class="status-item"><div class="status-value">{{ moves }}</div><div class="status-label">步数</div></div>
+  </div>
+  <div class="game-area">
+    <div class="puzzle-box">
+      <div 
+        class="grid" 
+        :class="size <=7 ? 'cozy' : 'compact'"
+        :style="{gridTemplateColumns:`repeat(${cols},1fr)`}"
+      >
+        <div
+          v-for="(num, idx) in flatBoard"
+          :key="idx"
+          class="tile"
+          :class="[size <=7 ? 'cozy' : 'compact', { empty: num === null }]"
+          @click="moveByIndex(idx)"
+        >
+          {{ num || '' }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="control">
+    <div class="row">
+      <select class="sel" v-model="size" @change="init">
+        <option value="2x3">2×3</option>
+        <option value="3">3×3</option>
+        <option value="4">4×4</option>
+        <option value="5">5×5</option>
+        <option value="6">6×6</option>
+        <option value="7">7×7</option>
+        <option value="8">8×8</option>
+        <option value="9">9×9</option>
+      </select>
+      <button class="btn start" @click="toggle">{{ started ? (paused ? '继续' : '暂停') : '开始' }}</button>
+      <select class="btn reset" v-model="resetAct" @change="doReset">
+        <option disabled value="">重置</option>
+        <option value="round">本轮重置</option>
+        <option value="new">重新开始</option>
+      </select>
+      <button class="btn history" @click="openHistory">记录</button>
+    </div>
+    <div class="mode-row">
+      <select class="difficulty-select" v-model="difficulty" @change="init">
+        <option value="easy">简单</option><option value="medium">标准</option><option value="hard">挑战</option>
+      </select>
+      <label class="mode-item"><input type="checkbox" v-model="instant">瞬移</label>
+      <label class="mode-item"><input type="checkbox" v-model="soundOn">{{ soundOn ? '🔊' : '🔇' }}</label>
+      <label class="mode-item" style="cursor:pointer" @click="toggleTheme">
+        {{ theme === 'dark' ? '🌙' : '✨' }}
+      </label>
+    </div>
+  </div>
+
+  <div class="overlay" v-if="showHistory" @click.self="closeHistory">
+    <div class="panel">
+      <div class="history-header">
+        <div class="history-title">游戏记录</div>
+        <div class="flex gap-2">
+          <button class="del-btn" @click="clearHistory">清空</button>
+          <button class="del-btn bg-gray-600" @click="closeHistory">关闭</button>
+        </div>
+      </div>
+      <div class="history-filter">
+        <select v-model="filterSize"><option value="all">全部尺寸</option><option value="2×3">2×3</option><option value="3×3">3×3</option><option value="4×4">4×4</option></select>
+        <select v-model="filterDiff"><option value="all">全部难度</option><option value="easy">简单</option><option value="medium">标准</option><option value="hard">挑战</option></select>
+        <select v-model="filterSort"><option value="recent">最近</option><option value="time">时间</option><option value="moves">步数</option></select>
+      </div>
+      <div class="history-list">
+        <div class="history-empty" v-if="filteredHistory.length===0">暂无记录</div>
+        <div class="history-item" v-for="(item,i) in filteredHistory" :key="i">
+          <div class="history-left" @click="loadRecord(item)">
+            <div class="history-size">{{ item.size }}</div>
+            <div class="history-diff">{{ item.diffText }}</div>
+            <div class="history-date">{{ item.date }}</div>
+          </div>
+          <div class="history-right">
+            <div class="history-stats">
+              <div class="history-time">{{ item.time }}</div>
+              <div class="history-moves">{{ item.moves }}步</div>
+            </div>
+            <button class="del-btn" @click.stop="deleteRecord(item)">删</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const { createApp } = Vue
+createApp({
+  data() {
+    return {
+      size:"4",
+      difficulty:'easy',
+      board:[],origin:[],moves:0,sec:0,timer:null,
+      started:false,paused:false,instant:false,soundOn:true,resetAct:'',
+      showHistory:false,history:[],moveSound:null,
+      filterSize:'all',filterDiff:'all',filterSort:'recent',
+      theme:'dark'
+    }
+  },
+  computed: {
+    rows(){
+      if(this.size==='2x3')return 2
+      return Number(this.size)
+    },
+    cols(){
+      if(this.size==='2x3')return 3
+      return Number(this.size)
+    },
+    time() {
+      const m = String(Math.floor(this.sec/60)).padStart(2,'0')
+      const s = String(this.sec%60).padStart(2,'0')
+      return m+':'+s
+    },
+    flatBoard() {return this.board.length ? this.board.flat() : []},
+    filteredHistory(){
+      let data = [...this.history]
+      if(this.filterSize!=='all') data = data.filter(item=>item.size===this.filterSize)
+      if(this.filterDiff!=='all') data = data.filter(item=>item.difficulty===this.filterDiff)
+      if(this.filterSort==='time'){
+        data.sort((a,b)=>{
+          const t1 = a.time.split(':').reduce((m,s)=>m*60+Number(s),0)
+          const t2 = b.time.split(':').reduce((m,s)=>m*60+Number(s),0)
+          return t1-t2
+        })
+      }else if(this.filterSort==='moves'){
+        data.sort((a,b)=>a.moves-b.moves)
+      }
+      return data.slice(0,50)
+    }
+  },
+  methods: {
+    toggleTheme(){
+      this.theme = this.theme === 'dark' ? 'neon' : 'dark'
+      document.documentElement.setAttribute('data-theme', this.theme)
+    },
+    async playMoveSound() {
+      if(!this.soundOn || !this.moveSound) return
+      try {this.moveSound.currentTime=0;await this.moveSound.play()}catch(e){}
+    },
+    step(){return this.difficulty==='easy'?20:this.difficulty==='medium'?60:120},
+    target(){
+      let total;
+      if(this.size==='2x3') total=6
+      else total = this.size * this.size
+      const a=Array.from({length:total-1},(_,i)=>i+1)
+      a.push(null)
+      return a
+    },
+    shuffle(arr){
+      const a=[...arr]
+      let s
+      if(this.size==='2x3') s=3
+      else s=Number(this.size)
+      let empty=a.indexOf(null)
+      const steps=this.step()
+      for(let i=0;i<steps;i++){
+        const r=Math.floor(empty/s)
+        const c=empty%s
+        const p=[]
+        if(r>0)p.push(empty-s)
+        if(r<this.rows-1)p.push(empty+s)
+        if(c>0)p.push(empty-1)
+        if(c<s-1)p.push(empty+1)
+        if(p.length===0)continue
+        const t=p[Math.floor(Math.random()*p.length)]
+        ;[a[empty],a[t]]=[a[t],a[empty]]
+        empty=t
+      }
+      return a
+    },
+    toBoard(arr){
+      const r=this.rows
+      const c=this.cols
+      const b=[]
+      for(let i=0;i<r;i++) b.push(arr.slice(i*c,(i+1)*c))
+      return b
+    },
+    init(){
+      clearInterval(this.timer)
+      this.started=false;this.paused=false;this.moves=0;this.sec=0
+      const sol=this.target()
+      const shuffled=this.shuffle(sol)
+      this.origin=[...shuffled]
+      this.board=this.toBoard(shuffled)
+    },
+    moveByIndex(idx){
+      if(!this.started||this.paused)return
+      const c=this.cols
+      const r=Math.floor(idx/c)
+      const cc=idx%c
+      this.move(r,cc)
+    },
+    move(r,c){
+      let er=-1,ec=-1
+      const rr=this.rows
+      const cc=this.cols
+      for(let i=0;i<rr;i++){
+        for(let j=0;j<cc;j++){
+          if(this.board[i][j]===null){er=i;ec=j;break}
+        }
+      }
+      if(er===-1||ec===-1)return
+
+      if(this.instant){
+        this.board[er][ec]=this.board[r][c]
+        this.board[r][c]=null
+        this.moves++
+        this.playMoveSound()
+        this.checkWin()
+        return
+      }
+
+      if(Math.abs(r-er)+Math.abs(c-ec)!==1)return
+      this.board[er][ec]=this.board[r][c]
+      this.board[r][c]=null
+      this.moves++
+      this.playMoveSound()
+      this.checkWin()
+    },
+    checkWin(){
+      const sol=this.target()
+      const flat=this.board.flat()
+      for(let i=0;i<sol.length;i++) if(flat[i]!==sol[i])return
+      clearInterval(this.timer)
+      this.started=false
+      this.save()
+      Swal.fire({
+        title:'🎉 恭喜通关！',
+        html:`难度：${this.difficulty==='easy'?'简单':this.difficulty==='medium'?'标准':'挑战'}<br>用时：${this.time}<br>步数：${this.moves}步`,
+        icon:'success',confirmButtonText:'再来一局',
+        background:'#111827',color:'#e5e7eb',confirmButtonColor:'#059669'
+      }).then(()=>{this.init()})
+    },
+    toggle(){
+      if(!this.started){
+        if(!this.moveSound)this.moveSound=new Audio('https://cdn.freesound.org/previews/684/684505_14040168-lq.mp3')
+        this.started=true;this.paused=false;this.timer=setInterval(()=>this.sec++,1000)
+      }else if(this.paused){
+        this.paused=false;this.timer=setInterval(()=>this.sec++,1000)
+      }else{
+        this.paused=true;clearInterval(this.timer)
+      }
+    },
+    doReset(){const v=this.resetAct;this.resetAct='';if(v==='round')this.resetRound();if(v==='new')this.init()},
+    resetRound(){clearInterval(this.timer);this.started=false;this.paused=false;this.moves=0;this.sec=0;this.board=this.toBoard(this.origin)},
+    save(){
+      let sizeText=this.size==='2x3'?'2×3':`${this.size}×${this.size}`
+      const rec={id:Date.now(),size:sizeText,difficulty:this.difficulty,
+        diffText:{easy:'简单',medium:'标准',hard:'挑战'}[this.difficulty],
+        layout:this.origin,time:this.time,moves:this.moves,date:new Date().toLocaleString()}
+      this.history.unshift(rec)
+      if(this.history.length>50)this.history=this.history.slice(0,50)
+      localStorage.setItem('klotski',JSON.stringify(this.history))
+    },
+    loadRecord(item){
+      this.closeHistory()
+      if(item.size==='2×3')this.size='2x3'
+      else this.size=item.size.split('×')[0]
+      this.difficulty=item.difficulty
+      this.origin=[...item.layout]
+      this.board=this.toBoard(this.origin)
+      clearInterval(this.timer);this.started=false;this.paused=false;this.moves=0;this.sec=0
+    },
+    openHistory(){this.showHistory=true},
+    closeHistory(){this.showHistory=false},
+    deleteRecord(item){if(!confirm('确定删除？'))return;this.history=this.history.filter(h=>h.id!==item.id);localStorage.setItem('klotski',JSON.stringify(this.history))},
+    clearHistory(){if(!confirm('确定清空所有记录？'))return;this.history=[];localStorage.removeItem('klotski')}
+  },
+  mounted(){
+    const local=localStorage.getItem('klotski')
+    if(local)this.history=JSON.parse(local)
+    this.init()
+    tsParticles.load("particles",{
+      fpsLimit:60,particles:{
+        color:{value:"#ffffff"},move:{enable:true,speed:0.8,direction:"none",random:true},
+        number:{value:40},opacity:{value:0.08},shape:{type:"circle"},size:{value:2}
+      },detectRetina:true
+    })
+  }
+}).mount('#app')
+</script>
+</body>
+</html>
+

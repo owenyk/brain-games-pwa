@@ -524,7 +524,7 @@ document.addEventListener('DOMContentLoaded', function() {
   floatContainer.appendChild(switchBtn);
   document.body.appendChild(floatContainer);
   
-  // 如果顶部导航被Vue覆盖，尝试调整z-index
+  // 避免顶部导航被Vue覆盖，可尝试调整z-index
   const topNav = document.getElementById('game-nav');
   if (topNav) {
     const vueApp = document.querySelector('#app');

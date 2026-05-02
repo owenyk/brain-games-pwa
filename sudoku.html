@@ -72,7 +72,7 @@ html, body {
   width: 100%;
   aspect-ratio: 1 / 1;
 }
-/* ========== 核心修复：强制行列等宽等高，不受内容影响 ========== */
+/* ========== 强制行列等宽等高，不受内容影响 ========== */
 .sudoku-board {
   width: 100%;
   height: 100%;
@@ -1112,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', function() {
   floatContainer.appendChild(switchBtn);
   document.body.appendChild(floatContainer);
   
-  // 如果数独游戏有自己的顶部栏，调整z-index避免被覆盖
+  // 可调整z-index避免被覆盖
   const gameHeader = document.querySelector('.game-header, .header, .sudoku-header');
   if (gameHeader) {
     const zIndex = parseInt(window.getComputedStyle(gameHeader).zIndex);

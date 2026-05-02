@@ -38,9 +38,18 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,sans-seri
 
 html,body{background:var(--bg);color:var(--text)}
 .main{position:fixed;inset:0;display:flex;flex-direction:column}
-.header{background:var(--card);padding:6px 0;text-align:center;border-bottom:1px solid rgba(255,255,255,.1);height:50px}
-.header h1{font-size:16px;color:#fff}
-.header p{font-size:10px;color:var(--cyan);margin-top:2px}
+.header{background:var(--card);padding:3px 0;text-align:center;border-bottom:1px solid rgba(255,255,255,.1);height:50px}
+/*.header h1{font-size:16px;color:#fff}*/
+.header h1{
+padding: 2px 5px;
+    background: rgba(15, 23, 42, 0.9);
+    border-radius: 20px;
+    color: #7dd3fc;
+    font-size: 16px;
+    font-weight: bold;
+    border: 1px solid rgba(125, 211, 252, 0.2);
+    }
+.header p{font-size:10px;color:var(--cyan);margin-top:1px}
 .status-bar{display:flex;justify-content:space-around;background:var(--bar);padding:5px 0;height:50px}
 .status-item{text-align:center}
 .status-value{font-size:18px;font-weight:bold;color:var(--accent)}
@@ -98,8 +107,59 @@ html,body{background:var(--bg);color:var(--text)}
 </head>
 <body>
 <div id="particles"></div>
+
+<div id="game-nav" style="
+  position: fixed;
+  top: 5px;
+  left: 15px;
+  right: 15px;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+">
+  <!-- 返回主页按钮 -->
+  <a href="index.html" style="
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 1px 5px;
+    background: rgba(15, 23, 42, 0.9);
+    border-radius: 20px;
+    text-decoration: none;
+    color: #94a3b8;
+    font-size: 14px;
+    pointer-events: auto;
+    border: 1px solid rgba(125, 211, 252, 0.2);
+    transition: all 0.3s;
+  " onmouseover="this.style.background='rgba(30, 41, 59, 0.9)';this.style.color='#7dd3fc';"
+     onmouseout="this.style.background='rgba(15, 23, 42, 0.9)';this.style.color='#94a3b8';">
+    <span style="font-size: 16px;">←</span> 返回主页
+  </a>
+  
+  <!-- 切换到数独按钮 -->
+  <a href="sudoku.html" style="
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 1px 5px;
+    background: rgba(15, 23, 42, 0.9);
+    border-radius: 20px;
+    text-decoration: none;
+    color: #94a3b8;
+    font-size: 14px;
+    pointer-events: auto;
+    border: 1px solid rgba(125, 211, 252, 0.2);
+    transition: all 0.3s;
+  " onmouseover="this.style.background='rgba(30, 41, 59, 0.9)';this.style.color='#7dd3fc';"
+     onmouseout="this.style.background='rgba(15, 23, 42, 0.9)';this.style.color='#94a3b8';">
+    数独游戏 <span style="font-size: 16px;">→</span>
+  </a>
+</div>
+
+
 <div id="app" class="main">
-  <div class="header"><h1>数字华容道</h1><p>逻辑思维与空间想象能力训练</p></div>
+  <div class="header"><h1>数字华容道</h1><p>逻辑思维与空间想象能力训练<p></div>
   <div class="status-bar">
     <div class="status-item"><div class="status-value">{{ time }}</div><div class="status-label">时间</div></div>
     <div class="status-item"><div class="status-value">{{ moves }}</div><div class="status-label">步数</div></div>
@@ -387,6 +447,95 @@ createApp({
   }
 }).mount('#app')
 </script>
+<!-- 在页面最底部，</body> 前添加浮动切换按钮 -->
+<script>
+// 在游戏界面右下角添加浮动切换按钮
+document.addEventListener('DOMContentLoaded', function() {
+  // 创建浮动按钮容器
+  const floatContainer = document.createElement('div');
+  floatContainer.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  `;
+  
+  // 创建返回主页按钮
+  const homeBtn = document.createElement('a');
+  homeBtn.href = 'index.html';
+  homeBtn.innerHTML = '🏠';
+  homeBtn.title = '返回主页';
+  homeBtn.style.cssText = `
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: white;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+  `;
+  homeBtn.onmouseover = () => {
+    homeBtn.style.transform = 'scale(1.1)';
+    homeBtn.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.5)';
+  };
+  homeBtn.onmouseout = () => {
+    homeBtn.style.transform = 'scale(1)';
+    homeBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+  };
+  
+  // 创建切换到数独按钮
+  const switchBtn = document.createElement('a');
+  switchBtn.href = 'sudoku.html';
+  switchBtn.innerHTML = '🔢';
+  switchBtn.title = '玩数独游戏';
+  switchBtn.style.cssText = `
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    color: white;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+  `;
+  switchBtn.onmouseover = () => {
+    switchBtn.style.transform = 'scale(1.1)';
+    switchBtn.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.5)';
+  };
+  switchBtn.onmouseout = () => {
+    switchBtn.style.transform = 'scale(1)';
+    switchBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+  };
+  
+  // 添加到页面
+  floatContainer.appendChild(homeBtn);
+  floatContainer.appendChild(switchBtn);
+  document.body.appendChild(floatContainer);
+  
+  // 如果顶部导航被Vue覆盖，尝试调整z-index
+  const topNav = document.getElementById('game-nav');
+  if (topNav) {
+    const vueApp = document.querySelector('#app');
+    if (vueApp && parseInt(window.getComputedStyle(vueApp).zIndex) > 1000) {
+      topNav.style.zIndex = '2000';
+      floatContainer.style.zIndex = '2000';
+    }
+  }
+});
+</script>
+
 </body>
 </html>
 

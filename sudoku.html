@@ -39,9 +39,17 @@ html, body {
   height: auto !important;
 }
 .title-card h1 {
-  font-size: 24px !important;
+  /*font-size: 24px !important;
   font-weight: 700;
-  margin-bottom: 4px !important;
+  margin-bottom: 4px !important;*/
+  padding: 8px 20px;
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 20px;
+  color: #7dd3fc;
+  font-size: 16px;
+  font-weight: bold;
+  border: 1px solid rgba(125, 211, 252, 0.2);
+
 }
 .title-card p {
   font-size: 14px !important;
@@ -378,6 +386,68 @@ html, body {
 </style>
 </head>
 <body>
+
+  <div id="game-nav" style="
+  position: fixed;
+  top: 10px;
+  left: 15px;
+  right: 25px;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+">
+  <!-- 返回主页按钮 -->
+  <a href="index.html" style="
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    background: rgba(15, 23, 42, 0.9);
+    border-radius: 20px;
+    text-decoration: none;
+    color: #94a3b8;
+    font-size: 14px;
+    pointer-events: auto;
+    border: 1px solid rgba(125, 211, 252, 0.2);
+    transition: all 0.3s;
+  " onmouseover="this.style.background='rgba(30, 41, 59, 0.9)';this.style.color='#7dd3fc';"
+     onmouseout="this.style.background='rgba(15, 23, 42, 0.9)';this.style.color='#94a3b8';">
+    <span style="font-size: 16px;">←</span> 返回主页
+  </a>
+  
+  <!-- 游戏标题 -->
+  <!-- <div style="
+    padding: 8px 20px;
+    background: rgba(15, 23, 42, 0.9);
+    border-radius: 20px;
+    color: #7dd3fc;
+    font-size: 16px;
+    font-weight: bold;
+    border: 1px solid rgba(125, 211, 252, 0.2);
+  ">
+    数独游戏
+  </div> -->
+  
+  <!-- 切换到华容道按钮 -->
+  <a href="klotski-v3.html" style="
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(15, 23, 42, 0.9);
+    border-radius: 20px;
+    text-decoration: none;
+    color: #94a3b8;
+    font-size: 14px;
+    pointer-events: auto;
+    border: 1px solid rgba(125, 211, 252, 0.2);
+    transition: all 0.3s;
+  " onmouseover="this.style.background='rgba(30, 41, 59, 0.9)';this.style.color='#7dd3fc';"
+     onmouseout="this.style.background='rgba(15, 23, 42, 0.9)';this.style.color='#94a3b8';">
+    数字华容道 <span style="font-size: 16px;">→</span>
+  </a>
+</div>
 <div id="app">
   <div class="card title-card">
     <h1>数独游戏</h1>
@@ -965,5 +1035,94 @@ createApp({
   }
 }).mount('#app');
 </script>
+
+<script>
+// 在游戏界面右下角添加浮动切换按钮
+document.addEventListener('DOMContentLoaded', function() {
+  // 创建浮动按钮容器
+  const floatContainer = document.createElement('div');
+  floatContainer.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  `;
+  
+  // 创建返回主页按钮
+  const homeBtn = document.createElement('a');
+  homeBtn.href = 'index.html';
+  homeBtn.innerHTML = '🏠';
+  homeBtn.title = '返回主页';
+  homeBtn.style.cssText = `
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    color: white;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+  `;
+  homeBtn.onmouseover = () => {
+    homeBtn.style.transform = 'scale(1.1)';
+    homeBtn.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.5)';
+  };
+  homeBtn.onmouseout = () => {
+    homeBtn.style.transform = 'scale(1)';
+    homeBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+  };
+  
+  // 创建切换到华容道按钮
+  const switchBtn = document.createElement('a');
+  switchBtn.href = 'klotski-v3.html';
+  switchBtn.innerHTML = '🧩';
+  switchBtn.title = '玩数字华容道';
+  switchBtn.style.cssText = `
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: white;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+  `;
+  switchBtn.onmouseover = () => {
+    switchBtn.style.transform = 'scale(1.1)';
+    switchBtn.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.5)';
+  };
+  switchBtn.onmouseout = () => {
+    switchBtn.style.transform = 'scale(1)';
+    switchBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+  };
+  
+  // 添加到页面
+  floatContainer.appendChild(homeBtn);
+  floatContainer.appendChild(switchBtn);
+  document.body.appendChild(floatContainer);
+  
+  // 如果数独游戏有自己的顶部栏，调整z-index避免被覆盖
+  const gameHeader = document.querySelector('.game-header, .header, .sudoku-header');
+  if (gameHeader) {
+    const zIndex = parseInt(window.getComputedStyle(gameHeader).zIndex);
+    if (zIndex > 1000) {
+      document.getElementById('game-nav').style.zIndex = (zIndex + 100).toString();
+      floatContainer.style.zIndex = (zIndex + 100).toString();
+    }
+  }
+});
+</script>
+
 </body>
 </html>

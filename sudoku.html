@@ -229,14 +229,15 @@ html, body {
 .switch-item {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   background-color: #334155;
   border-radius: 8px;
   padding: 12px 0;
   text-align: center;
+  white-space: nowrap; /* 禁止文本换行 */
 }
 .switch-item input {
   width: 16px;

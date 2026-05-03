@@ -919,7 +919,7 @@ createApp({
         color: '#fff',
         allowOutsideClick: false,
         showConfirmButton: false,
-        timer: 1200
+        timer: 1000
       });
       
       // 安全地更新进度条
@@ -927,13 +927,13 @@ createApp({
       if (progressBar) {
         let progress = 0;
         const progressTimer = setInterval(() => {
-          progress += 5;
+          progress += 20;
           progressBar.style.width = `${Math.min(progress, 100)}%`;
           if (progress >= 100) clearInterval(progressTimer);
-        }, 150);
+        }, 100);
       }
       
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       let isAllCorrect = true;
       let errNum = 0;

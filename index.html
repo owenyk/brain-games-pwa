@@ -228,7 +228,13 @@
         background: rgba(15, 23, 42, 0.5);
         border-radius: 10px;
         border: 1px solid rgba(125, 211, 252, 0.1);
+        color: #7dd3fc;
+        font-size: 14px;
     }
+    .stat-item span {
+        margin: 0 4px;
+    }
+
     </style>
     <!-- 注册 Service Worker -->
     <script>
@@ -316,41 +322,36 @@
         </div>
     </div>
     <script>
-    (function() {
-        // 确保页面完全加载
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initStats);
-        } else {
-            initStats();
-        }
+    <script>
+(function () {
+    var el = document.getElementById('total-uv-display');
+    if (!el) return;
 
-        function initStats() {
-            // 查找显示元素
-            var displayEl = document.getElementById('total-uv-display') ||
-                document.getElementById('total-uv-count') ||
-                document.querySelector('.stat-number');
+    // 本地统计
+    var localCount = parseInt(localStorage.getItem('game_uv_count')) || 0;
+    el.textContent = localCount;
 
-            if (!displayEl) {
-                console.warn('未找到统计显示元素');
-                return;
+    // 等待不蒜子加载
+    var timer = setInterval(function () {
+        var uv = document.getElementById('busuanzi_value_site_uv');
+        if (uv && uv.textContent) {
+            var realCount = parseInt(uv.textContent);
+            if (realCount > localCount) {
+                el.textContent = realCount;
+                localStorage.setItem('game_uv_count', realCount);
             }
-
-            // 统计逻辑
-            var today = new Date().toDateString();
-            var lastDate = localStorage.getItem('last_total_uv_date');
-            var count = parseInt(localStorage.getItem('total_uv_count')) || 0;
-
-            if (lastDate !== today) {
-                count += 1;
-                localStorage.setItem('total_uv_count', count);
-                localStorage.setItem('last_total_uv_date', today);
-            }
-
-            // 立即显示
-            displayEl.textContent = count;
+            clearInterval(timer);
         }
-    })();
+    }, 300);
+
+    // 超时保护
+    setTimeout(function () {
+        clearInterval(timer);
+    }, 5000);
+})();
+
     </script>
+
     <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </body>
 

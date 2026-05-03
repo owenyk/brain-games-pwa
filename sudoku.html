@@ -912,26 +912,15 @@ createApp({
     const checkAllAnswer = async () => {
       const { value: result } = await Swal.fire({
         title: '正在检查答案...',
-        html: `<div style="width:100%;background:#334155;border-radius:8px;overflow:hidden;margin:10px 0">
-                 <div id="progressBar" style="height:8px;background:#16A34A;width:0%;transition:width 0.3s"></div>
-               </div>`,
+        html: '<div style="margin:20px 0;text-align:center">'
+              + '<div style="width:40px;height:40px;margin:0 auto;border:3px solid #334155;border-radius:50%;border-top:3px solid #16A34A;animation:swal2-rotate 0.5s linear infinite"></div>'
+              + '</div>',
         background: '#1E293B',
         color: '#fff',
         allowOutsideClick: false,
         showConfirmButton: false,
-        timer: 1000
+        timer: 800  // 从3000减少为800毫秒
       });
-      
-      // 安全地更新进度条
-      const progressBar = document.getElementById('progressBar');
-      if (progressBar) {
-        let progress = 0;
-        const progressTimer = setInterval(() => {
-          progress += 20;
-          progressBar.style.width = `${Math.min(progress, 100)}%`;
-          if (progress >= 100) clearInterval(progressTimer);
-        }, 100);
-      }
       
       await new Promise(resolve => setTimeout(resolve, 500));
 

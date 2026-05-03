@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>数独游戏-行列固定版</title>
+<title>数独游戏</title>
+
 <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.20/dist/sweetalert2.all.min.js"></script>
+
 <style>
 * {
   margin: 0;
@@ -24,6 +26,7 @@ html, body {
   width: 100%;
   padding: 12px;
 }
+
 .card {
   width: 100%;
   max-width: 420px;
@@ -36,36 +39,35 @@ html, body {
   text-align: center;
 }
 .title-card h1 {
-  font-size: 32px;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-.title-card p {
+  padding: 8px 20px;
+  background: rgba(15,23,42,.9);
+  border-radius: 20px;
+  color: #7dd3fc;
   font-size: 16px;
-  color: #93C5FD;
+  font-weight: bold;
+  border: 1px solid rgba(125,211,252,.2);
 }
 .time-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  min-height: 50px;
 }
 .time-text {
   font-size: 24px;
   font-weight: 700;
   color: #93C5FD;
-  white-space: nowrap;
 }
+
 .board-container {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1/1;
 }
 .sudoku-board {
   width: 100%;
   height: 100%;
   display: grid;
-  grid-template-columns: repeat(9, 1fr) !important;
-  grid-template-rows: repeat(9, 1fr) !important;
+  grid-template-columns: repeat(9,1fr);
+  grid-template-rows: repeat(9,1fr);
   border: 4px solid #64748B;
   border-radius: 8px;
   overflow: hidden;
@@ -77,147 +79,81 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(1rem, 4vw, 1.5rem);
+  font-size: clamp(1rem,4vw,1.5rem);
   font-weight: 700;
-  position: relative;
   cursor: pointer;
-  background-color: #1E293B;
-  flex-shrink: 0;
+  background: #1E293B;
+  position: relative;
 }
 .cell:nth-child(3n),
 .cell:nth-child(6n) {
-  border-right: 3px solid #64748B;
+  border-right-width: 3px;
 }
 .cell:nth-child(n+19):nth-child(-n+27),
 .cell:nth-child(n+46):nth-child(-n+54) {
-  border-bottom: 3px solid #64748B;
+  border-bottom-width: 3px;
 }
-.cell.fixed {
-  color: #94A3B8;
-}
-.cell.user {
-  color: #FFFFFF;
-}
+.cell.fixed { color: #94A3B8; }
+.cell.user { color: #fff; }
 .cell.error {
-  animation: errorBlink 1s ease-in-out infinite;
-  background-color: #7F1D1D;
+  animation: errorBlink 1s infinite;
+  background: #7F1D1D;
 }
-.cell.selected {
-  background-color: #0369A1;
-  z-index: 2;
-}
-.cell.highlight {
-  background-color: #334155;
-}
-.note-grid {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  font-size: 0.5rem;
-  color: #94A3B8;
-}
+.cell.selected { background: #0369A1; z-index: 2; }
+.cell.highlight { background: #334155; }
+
+.note-grid,
 .ans-preview {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  font-size: 0.5rem;
-  color: #22D3EE;
-  z-index: 3;
+  grid-template-columns: repeat(3,1fr);
+  font-size: .5rem;
 }
-.btn-group {
+.note-grid { color: #94A3B8; }
+.ans-preview { color: #22D3EE; z-index: 3; }
+
+.btn-group, .btn-row2, .btn-row3 {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 4px;
-  margin-bottom: 10px;
-}
-.btn-row2 {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   margin-bottom: 10px;
 }
-.btn-row3 {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-bottom: 15px;
-}
+.btn-group { grid-template-columns: repeat(5,1fr); }
+.btn-row2 { grid-template-columns: repeat(3,1fr); }
+.btn-row3 { grid-template-columns: repeat(4,1fr); }
+
 .btn {
-  width: 100%;
   padding: 12px 0;
   border: none;
   border-radius: 8px;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
 }
-.btn-num {
-  background-color: #334155;
-  color: #fff;
-}
-.btn-num:active {
-  background-color: #475569;
-}
-.btn-primary {
-  background-color: #16A34A;
-  color: #fff;
-}
-.btn-primary:active {
-  background-color: #22C55E;
-}
-.btn-secondary {
-  background-color: #2563EB;
-  color: #fff;
-}
-.btn-secondary:active {
-  background-color: #3B82F6;
-}
-.btn-warning {
-  background-color: #F59E0B;
-  color: #fff;
-}
-.btn-warning:active {
-  background-color: #FBBF24;
-}
-.btn-danger {
-  background-color: #DC2626;
-  color: #fff;
-}
-.btn-danger:active {
-  background-color: #EF4444;
-}
-.switch-group {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  font-size: 14px;
-}
-.switch-group label {
+.btn-num { background: #334155; color: #fff; }
+.btn-primary { background: #16A34A; color: #fff; }
+.btn-secondary { background: #2563EB; color: #fff; }
+.btn-warning { background: #F59E0B; color: #fff; }
+.btn-danger { background: #DC2626; color: #fff; }
+.btn-print { background: #2563EB; color: #fff; }
+.btn-answer { background: #16A34A; color: #fff; }
+
+.switch-item {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  cursor: pointer;
+  font-size: 14px;
+  background: #334155;
+  border-radius: 8px;
+  padding: 12px 0;
 }
-.switch-group input {
-  width: 16px;
-  height: 16px;
-}
+.switch-item input { width: 16px; height: 16px; }
+
 .modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
+  inset: 0;
+  background: rgba(0,0,0,.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -227,7 +163,7 @@ html, body {
 .modal-card {
   width: 100%;
   max-width: 420px;
-  background-color: #1E293B;
+  background: #1E293B;
   border-radius: 12px;
   padding: 16px;
   max-height: 85vh;
@@ -235,40 +171,8 @@ html, body {
   display: flex;
   flex-direction: column;
 }
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-.modal-header h2 {
-  font-size: 20px;
-  font-weight: 700;
-  color: #93C5FD;
-}
-.filter-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-.filter-row select {
-  width: 100%;
-  padding: 10px;
-  background-color: #1E293B;
-  border: 1px solid #64748B;
-  border-radius: 8px;
-  color: #fff;
-  font-size: 16px;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-}
-.record-list {
-  flex: 1;
-  overflow-y: auto;
-}
+
+.record-list { flex: 1; overflow-y: auto; }
 .record-item {
   padding: 12px;
   border-bottom: 1px solid #334155;
@@ -277,89 +181,71 @@ html, body {
   cursor: pointer;
   display: flex;
   justify-content: space-between;
-  align-items: center;
 }
-.record-item:hover {
-  background-color: #334155;
-}
-.record-info {
-  display: flex;
-  flex-direction: column;
-}
-.record-diff {
-  font-size: 12px;
-  color: #94A3B8;
-  margin-bottom: 2px;
-}
-.record-time {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 2px;
-}
-.record-date {
-  the-font-size: 11px;
-  color: #64748B;
-}
-.record-del-btn {
-  padding: 3px 6px;
-  background-color: #DC2626;
-  border-radius: 4px;
-  font-size: 11px;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-}
-.record-del-btn:active {
-  background-color: #EF4444;
-}
+.record-item:hover { background: #334155; }
+
 @keyframes errorBlink {
-  0%, 100% { background-color: #7F1D1D; }
-  50% { background-color: #991B1B; }
+  0%,100%{background:#7F1D1D;}
+  50%{background:#991B1B;}
+}
+
+@media print {
+  body * { visibility: hidden; }
+  .board-container, .board-container * { visibility: visible; }
+  .ans-preview { display: none !important; }
+  .btn-group, .btn-row2, .btn-row3, .switch-item, .card:not(.board-container) {
+    display: none !important;
+  }
 }
 </style>
 </head>
+
 <body>
+
+<!-- 顶部导航 -->
+<div id="game-nav" style="position:fixed;top:10px;left:15px;right:25px;z-index:1000;display:flex;justify-content:space-between;pointer-events:none">
+  <a href="index.html" style="pointer-events:auto;text-decoration:none;padding:6px 12px;background:rgba(15,23,42,.9);border-radius:20px;color:#94a3b8;border:1px solid rgba(125,211,252,.2)">← 主页</a>
+  <a href="klotski-v3.html" style="pointer-events:auto;text-decoration:none;padding:6px 12px;background:rgba(15,23,42,.9);border-radius:20px;color:#94a3b8;border:1px solid rgba(125,211,252,.2)">华容道 →</a>
+</div>
+
 <div id="app">
   <div class="card title-card">
     <h1>数独游戏</h1>
-    <p>Vue 专家版</p>
+    <p>逻辑思维与观察力训练</p>
   </div>
+
   <div class="card time-card">
     <span class="time-text">{{ timeDisplay }}</span>
     <span class="time-text">错误: {{ errorCount }}</span>
   </div>
+
   <div class="card board-container">
     <div class="sudoku-board">
       <div
         v-for="(cell, index) in boardFlatList"
         :key="index"
-        :class="[
-          'cell',
-          {
-            fixed: cell.fixed,
-            user: !cell.fixed,
-            error: cell.error,
-            selected: index === selectedCellIndex,
-            highlight: isCellHighlight(index)
-          }
+        :class="['cell',
+          { fixed: cell.fixed, user: !cell.fixed, error: cell.error, selected: index===selectedCellIndex, highlight: isCellHighlight(index) }
         ]"
         @click="selectCell(index)"
       >
-        <div v-if="cell.showHint || cell.showAnswerPreview" class="ans-preview">
-          <span v-for="num in 9" :key="num">{{ num === (cell.showHint ? cell.hintNum : cell.answerNum) ? num : '' }}</span>
+        <div v-if="cell.showHint||cell.showAnswerPreview" class="ans-preview">
+          <span v-for="n in 9">{{ n===(cell.showHint?cell.hintNum:cell.answerNum)?n:'' }}</span>
         </div>
         <div v-else-if="cell.noteMode" class="note-grid">
-          <span v-for="num in 9" :key="num">{{ cell.notes.includes(num) ? num : '' }}</span>
+          <span v-for="n in 9">{{ cell.notes.includes(n)?n:'' }}</span>
         </div>
-        <span v-else>{{ cell.value || '' }}</span>
+        <span v-else>{{ cell.value||'' }}</span>
       </div>
     </div>
   </div>
+
   <div class="card">
     <div class="btn-group">
-      <button v-for="num in 9" :key="num" class="btn btn-num" @click="inputNumber(num)">{{ num }}</button>
+      <button v-for="n in 9" class="btn btn-num" @click="inputNumber(n)">{{n}}</button>
       <button class="btn btn-num" @click="toggleNoteMode">笔记</button>
     </div>
+
     <div class="btn-group">
       <select v-model="difficulty" class="btn btn-num" @change="restartNewGame">
         <option value="easy">简单</option>
@@ -367,556 +253,323 @@ html, body {
         <option value="hard">困难</option>
         <option value="expert">专家</option>
       </select>
-      <button class="btn" :class="gameStart ? (isPause ? 'btn-secondary' : 'btn-warning') : 'btn-primary'" @click="toggleGameStart">
-        {{ gameStart ? (isPause ? '继续' : '暂停') : '开始' }}
+      <button class="btn" :class="gameStart?(isPause?'btn-secondary':'btn-warning'):'btn-primary'" @click="toggleGameStart">
+        {{ gameStart?(isPause?'继续':'暂停'):'开始' }}
       </button>
       <button class="btn btn-num" @click="eraseCell">擦除</button>
       <button class="btn btn-num" @click="getHint">提示</button>
       <button class="btn btn-num" @click="openRecordModal">记录</button>
     </div>
+
     <div class="btn-row2">
       <button class="btn btn-num" @click="clearAllUserInput">一键清除</button>
       <button class="btn btn-num" @click="clearAllNote">清笔记</button>
-      <button class="btn btn-num" @click="resetGameTimer">重置计时</button>
       <button class="btn btn-danger" @click="restartNewGame">新局</button>
     </div>
+
     <div class="btn-row3">
-      <button class="btn btn-secondary" @click="printGameBoard">打印</button>
-      <button class="btn btn-primary" @click="toggleGlobalAnswerPreview">显示答案</button>
-    </div>
-    <div class="switch-group">
-      <label>
-        <input type="checkbox" v-model="enableRealTimeCheck"> 实时检查
-      </label>
-      <label>
-        <input type="checkbox" v-model="enableAutoHighlight"> 自动高亮
-      </label>
+      <button class="btn btn-print" @click="printGameBoard">打印</button>
+      <button class="btn btn-answer" @click="toggleGlobalAnswerPreview">显示答案</button>
+      <label class="switch-item"><input type="checkbox" v-model="enableRealTimeCheck"> 实时检查</label>
+      <label class="switch-item"><input type="checkbox" v-model="enableAutoHighlight"> 自动高亮</label>
     </div>
   </div>
+
+  <!-- 记录弹窗 -->
   <div v-if="showRecordModal" class="modal" @click.self="closeRecordModal">
     <div class="modal-card">
       <div class="modal-header">
         <h2>游戏记录</h2>
-        <div style="display: flex; gap: 8px;">
-          <button class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" @click="clearAllGameRecord">清空</button>
-          <button class="btn btn-num" style="padding: 6px 12px; font-size: 12px;" @click="closeRecordModal">关闭</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-danger" @click="clearAllGameRecord">清空</button>
+          <button class="btn btn-num" @click="closeRecordModal">关闭</button>
         </div>
       </div>
       <div class="filter-row">
-        <select v-model="filterDiff">
-          <option value="all">全部难度</option>
-          <option value="easy">简单</option>
-          <option value="normal">标准</option>
-          <option value="hard">困难</option>
-          <option value="expert">专家</option>
-        </select>
-        <select v-model="filterSort">
-          <option value="latest">最近10条</option>
-          <option value="fastest">用时前五</option>
-        </select>
+        <select v-model="filterDiff"><option value="all">全部难度</option><option value="easy">简单</option><option value="normal">标准</option><option value="hard">困难</option><option value="expert">专家</option></select>
+        <select v-model="filterSort"><option value="latest">最近10条</option><option value="fastest">用时前五</option></select>
       </div>
       <div class="record-list">
-        <div v-if="filteredRecords.length === 0" style="text-align: center; color: #94A3B8; padding: 30px 0;">
-          暂无记录
-        </div>
-        <div
-          v-for="(record, index) in filteredRecords"
-          :key="index"
-          class="record-item"
-          @click="restoreGameFromRecord(record)"
-        >
-          <div class="record-info">
-            <div class="record-diff">{{ record.diffText }}</div>
-            <div class="record-time">{{ record.playTime }}</div>
-            <div class="record-date">{{ record.saveDate }}</div>
+        <div v-if="filteredRecords.length===0" style="text-align:center;color:#94A3B8;padding:30px">暂无记录</div>
+        <div v-for="(r,i) in filteredRecords" :key="i" class="record-item" @click="restoreGameFromRecord(r)">
+          <div>
+            <div>{{ r.diffText }}</div>
+            <div style="font-size:18px;font-weight:700">{{ r.playTime }}</div>
+            <div style="font-size:11px;color:#64748B">{{ r.saveDate }}</div>
           </div>
-          <button class="record-del-btn" @click.stop="deleteGameRecord(index)">删除</button>
+          <button class="record-del-btn" @click.stop="deleteGameRecord(i)">删除</button>
         </div>
       </div>
     </div>
   </div>
 </div>
+
 <script>
-const { createApp, ref, computed, onMounted } = Vue;
+const { createApp, ref, computed, watch } = Vue;
+
 createApp({
-  setup() {
-    const totalSeconds = ref(0);
-    let timerInterval = null;
-    const timeDisplay = computed(() => {
-      const minute = Math.floor(totalSeconds.value / 60).toString().padStart(2, '0');
-      const second = (totalSeconds.value % 60).toString().padStart(2, '0');
-      return `${minute}:${second}`;
-    });
-    const startTimer = () => {
-      if (timerInterval) clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        totalSeconds.value += 1;
-      }, 1000);
-    };
-    const stopTimer = () => {
-      if (timerInterval) clearInterval(timerInterval);
-    };
-    const resetGameTimer = () => {
-      totalSeconds.value = 0;
-      stopTimer();
-    };
+setup() {
+  /* ===== 计时 ===== */
+  const totalSeconds = ref(0);
+  let timer = null;
+  const timeDisplay = computed(()=>{
+    const m=String(Math.floor(totalSeconds.value/60)).padStart(2,'0');
+    const s=String(totalSeconds.value%60).padStart(2,'0');
+    return `${m}:${s}`;
+  });
+  const startTimer=()=>{ if(timer)clearInterval(timer); timer=setInterval(()=>totalSeconds.value++,1000); };
+  const stopTimer=()=>clearInterval(timer);
+  const resetTimer=()=>{ stopTimer(); totalSeconds.value=0; };
 
-    const difficulty = ref('normal');
-    const gameStart = ref(false);
-    const isPause = ref(false);
-    const selectedCellIndex = ref(-1);
-    const errorCount = ref(0);
-    const enableRealTimeCheck = ref(true);
-    const enableAutoHighlight = ref(true);
-    const noteMode = ref(false);
-    const globalAnswerPreview = ref(false);
+  /* ===== 状态 ===== */
+  const difficulty=ref('normal');
+  const gameStart=ref(false);
+  const isPause=ref(false);
+  const selectedCellIndex=ref(-1);
+  const errorCount=ref(0);
+  const enableRealTimeCheck=ref(true);
+  const enableAutoHighlight=ref(true);
+  const noteMode=ref(false);
+  const globalAnswerPreview=ref(false);
 
-    let correctAnswerBoard = [];
-    const gameBoard = ref([]);
-    const boardFlatList = computed(() => gameBoard.value.flat());
-    const selectedCellPos = computed(() => {
-      const row = Math.floor(selectedCellIndex.value / 9);
-      const col = selectedCellIndex.value % 9;
-      return { row, col };
-    });
+  const board=ref([]);
+  const answer=ref([]);
+  const boardFlatList=computed(()=>board.value.flat());
 
-    function createCorrectSudoku() {
-      const grid = Array.from({ length: 9 }, () => Array(9).fill(0));
-      for (let box = 0; box < 9; box += 3) {
-        const numList = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
-        for (let i = 0; i < 3; i++) {
-          for (let j = 0; j < 3; j++) {
-            grid[box + i][box + j] = numList[i * 3 + j];
-          }
-        }
-      }
-      function backtrackFill(row, col) {
-        if (row === 9) return true;
-        if (col === 9) return backtrackFill(row + 1, 0);
-        if (grid[row][col] !== 0) return backtrackFill(row, col + 1);
-        const numList = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
-        for (const num of numList) {
-          let isValid = true;
-          for (let i = 0; i < 9; i++) if (grid[row][i] === num) isValid = false;
-          for (let i = 0; i < 9; i++) if (grid[i][col] === num) isValid = false;
-          const boxRow = Math.floor(row / 3) * 3;
-          const boxCol = Math.floor(col / 3) * 3;
-          for (let i = 0; i < 3 && isValid; i++) {
-            for (let j = 0; j < 3; j++) {
-              if (grid[boxRow + i][boxCol + j] === num) {
-                isValid = false;
-                break;
-              }
-            }
-          }
-          if (isValid) {
-            grid[row][col] = num;
-            if (backtrackFill(row, col + 1)) return true;
-            grid[row][col] = 0;
-          }
-        }
-        return false;
-      }
-      backtrackFill(0, 0);
-      return grid;
+  /* ===== 数独生成 ===== */
+  function generateSudoku(){
+    const g=Array.from({length:9},()=>Array(9).fill(0));
+    function shuffle(arr){ return arr.sort(()=>Math.random()-0.5); }
+    function canPlace(r,c,n){
+      for(let i=0;i<9;i++) if(g[r][i]===n||g[i][c]===n) return false;
+      const br=Math.floor(r/3)*3, bc=Math.floor(c/3)*3;
+      for(let i=0;i<3;i++) for(let j=0;j<3;j++) if(g[br+i][bc+j]===n) return false;
+      return true;
     }
-    function createGameBoard(answerBoard, diff) {
-      const removeNum = { easy:35, normal:45, hard:55, expert:60 }[diff];
-      const game = answerBoard.map(row => [...row]);
-      let removeCount = 0;
-      while (removeCount < removeNum) {
-        const row = Math.floor(Math.random() * 9);
-        const col = Math.floor(Math.random() * 9);
-        if (game[row][col] !== 0) {
-          game[row][col] = 0;
-          removeCount++;
+    function fill(r=0,c=0){
+      if(r===9) return true;
+      if(c===9) return fill(r+1,0);
+      if(g[r][c]!==0) return fill(r,c+1);
+      for(const n of shuffle([1,2,3,4,5,6,7,8,9])){
+        if(canPlace(r,c,n)){
+          g[r][c]=n;
+          if(fill(r,c+1)) return true;
+          g[r][c]=0;
         }
       }
-      return game;
+      return false;
     }
-    function initGameBoard() {
-      resetGameTimer();
-      selectedCellIndex.value = -1;
-      errorCount.value = 0;
-      gameStart.value = false;
-      isPause.value = false;
-      globalAnswerPreview.value = false;
-      correctAnswerBoard = createCorrectSudoku();
-      const newGameBoard = createGameBoard(correctAnswerBoard, difficulty.value);
-      gameBoard.value = newGameBoard.map((row, rowIndex) => {
-        return row.map((val, colIndex) => ({
-          value: val,
-          fixed: val !== 0,
-          notes: [],
-          noteMode: false,
-          error: false,
-          showAnswerPreview: false,
-          answerNum: 0,
-          showHint: false,
-          hintNum: 0
-        }));
-      });
-    }
-
-    const toggleGameStart = () => {
-      if (!gameStart.value) {
-        gameStart.value = true;
-        isPause.value = false;
-        startTimer();
-      } else {
-        isPause.value = !isPause.value;
-        if (isPause.value) stopTimer();
-        else startTimer();
-      }
-    };
-    const selectCell = (index) => {
-      if (!gameStart.value || isPause.value) return;
-      selectedCellIndex.value = index;
-    };
-    const isCellHighlight = (index) => {
-      if (!enableAutoHighlight.value || selectedCellIndex.value === -1) return false;
-      const r1 = Math.floor(index / 9);
-      const c1 = index % 9;
-      const r2 = Math.floor(selectedCellIndex.value / 9);
-      const c2 = selectedCellIndex.value % 9;
-      return r1 === r2 || c1 === c2;
-    };
-    const inputNumber = (num) => {
-      if (!gameStart.value || isPause.value || selectedCellIndex.value === -1) return;
-      const { row, col } = selectedCellPos.value;
-      const cell = gameBoard.value[row][col];
-      if (cell.fixed) return;
-
-      cell.showHint = false;
-      cell.hintNum = 0;
-
-      if (noteMode.value) {
-        cell.notes = cell.notes.includes(num) ? cell.notes.filter(x => x !== num) : [...cell.notes, num];
-        cell.noteMode = true;
-        cell.value = 0;
-      } else {
-        cell.value = num;
-        cell.noteMode = false;
-        cell.notes = [];
-        if (enableRealTimeCheck.value) {
-          cell.error = (num !== correctAnswerBoard[row][col]);
-          countAllError();
-        } else {
-          cell.error = false;
-        }
-      }
-      checkGameFull();
-    };
-    const toggleNoteMode = () => {
-      noteMode.value = !noteMode.value;
-    };
-    const eraseCell = () => {
-      if (!gameStart.value || isPause.value || selectedCellIndex.value === -1) return;
-      const { row, col } = selectedCellPos.value;
-      const cell = gameBoard.value[row][col];
-      if (cell.fixed) return;
-      cell.value = 0;
-      cell.notes = [];
-      cell.noteMode = false;
-      cell.error = false;
-      cell.showHint = false;
-      cell.hintNum = 0;
-      countAllError();
-    };
-    const getHint = () => {
-      if (!gameStart.value || isPause.value || selectedCellIndex.value === -1) return;
-      const { row, col } = selectedCellPos.value;
-      const cell = gameBoard.value[row][col];
-      if (cell.fixed) return;
-      
-      cell.showHint = !cell.showHint;
-      if (cell.showHint) {
-        cell.hintNum = correctAnswerBoard[row][col];
-      } else {
-        cell.hintNum = 0;
-      }
-    };
-    const clearAllUserInput = () => {
-      for (let r = 0; r < 9; r++) {
-        for (let c = 0; c < 9; c++) {
-          const cell = gameBoard.value[r][c];
-          if (!cell.fixed) {
-            cell.value = 0;
-            cell.notes = [];
-            cell.noteMode = false;
-            cell.error = false;
-            cell.showAnswerPreview = false;
-            cell.answerNum = 0;
-            cell.showHint = false;
-            cell.hintNum = 0;
-          }
-        }
-      }
-      errorCount.value = 0;
-    };
-    const clearAllNote = () => {
-      for (let r = 0; r < 9; r++) {
-        for (let c = 0; c < 9; c++) {
-          gameBoard.value[r][c].notes = [];
-          gameBoard.value[r][c].noteMode = false;
-        }
-      }
-    };
-    const toggleGlobalAnswerPreview = () => {
-      if (!gameStart.value) {
-        Swal.fire({
-          icon: 'warning',
-          title: '提示',
-          text: '请先点击【开始】游戏',
-          background: '#1E293B',
-          color: '#fff',
-          timer: 1500,
-          showConfirmButton: false
-        });
-        return;
-      }
-      globalAnswerPreview.value = !globalAnswerPreview.value;
-      for (let r = 0; r < 9; r++) {
-        for (let c = 0; c < 9; c++) {
-          const cell = gameBoard.value[r][c];
-          if (!cell.fixed) {
-            if (globalAnswerPreview.value) {
-              cell.showAnswerPreview = true;
-              cell.answerNum = correctAnswerBoard[r][c];
-            } else {
-              cell.showAnswerPreview = false;
-              cell.answerNum = 0;
-            }
-          }
-        }
-      }
-    };
-    const countAllError = () => {
-      let err = 0;
-      for (let r = 0; r < 9; r++) {
-        for (let c = 0; c < 9; c++) {
-          if (gameBoard.value[r][c].error) err++;
-        }
-      }
-      errorCount.value = err;
-    };
-
-    const checkGameFull = () => {
-      let isFull = true;
-      for (let r = 0; r < 9; r++) {
-        for (let c = 0; c < 9; c++) {
-          const cell = gameBoard.value[r][c];
-          if (!cell.fixed && cell.value === 0) {
-            isFull = false;
-            break;
-          }
-        }
-        if (!isFull) break;
-      }
-      if (isFull) checkAllAnswer();
-    };
-
-    // ====================== 这里是改动的地方 ======================
-    const checkAllAnswer = async () => {
-      await Swal.fire({
-        title: '🧩 正在检查答案...',
-        html: `<div style="width:100%;background:#334155;border-radius:8px;overflow:hidden;margin:10px 0"><div id="progressBar" style="height:8px;background:#16A34A;width:0%"></div></div>`,
-        background: '#1E293B',
-        color: '#fff',
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        timer: 1500
-      });
-      const progressBar = document.getElementById('progressBar');
-      let progress = 0;
-      const progressTimer = setInterval(() => {
-        progress += 10;
-        progressBar.style.width = `${progress}%`;
-        if (progress >= 100) clearInterval(progressTimer);
-      }, 100);
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      let isAllCorrect = true;
-      let errNum = 0;
-      for (let r = 0; r < 9; r++) {
-        for (let c = 0; c < 9; c++) {
-          gameBoard.value[r][c].error = false;
-        }
-      }
-      for (let r = 0; r < 9; r++) {
-        for (let c = 0; c < 9; c++) {
-          const cell = gameBoard.value[r][c];
-          if (cell.value !== correctAnswerBoard[r][c]) {
-            cell.error = true;
-            isAllCorrect = false;
-            errNum++;
-          }
-        }
-      }
-      errorCount.value = errNum;
-
-      if (isAllCorrect) {
-        // ✅ 停止计时
-        stopTimer();
-        gameStart.value = false;
-        isPause.value = false;
-        saveGameRecord();
-
-        // ✨ 超级炫酷胜利弹窗
-        Swal.fire({
-          icon: 'success',
-          title: '🎉 恭喜通关！',
-          html: `<h3>全部正确！</h3><p>用时：${timeDisplay.value}</p>`,
-          background: '#1E293B',
-          color: '#fff',
-          confirmButtonText: '🏆 太棒了',
-          confirmButtonColor: '#06B6D4',
-          width: '320px',
-          padding: '20px',
-          backdrop: `rgba(0,0,0,0.7)`
-        });
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: '检查完成',
-          text: `共找到 ${errNum} 处错误，请修改`,
-          background: '#1E293B',
-          color: '#fff'
-        });
-      }
-    };
-    // ====================== 改动结束 ======================
-
-    const printGameBoard = () => {
-      window.print();
-    };
-    const restartNewGame = () => {
-      initGameBoard();
-    };
-
-    const showRecordModal = ref(false);
-    const gameRecordList = ref([]);
-    const filterDiff = ref('all');
-    const filterSort = ref('latest');
-
-    const filteredRecords = computed(() => {
-      let list = [...gameRecordList.value];
-      if (filterDiff.value !== 'all') {
-        list = list.filter(item => item.difficulty === filterDiff.value);
-      }
-      if (filterSort.value === 'latest') {
-        list.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        list = list.slice(0, 10);
-      } else if (filterSort.value === 'fastest') {
-        const toSec = t => {
-          let [m,s] = t.split(':').map(Number);
-          return m*60+s;
-        };
-        list.sort((a,b) => toSec(a.playTime) - toSec(b.playTime));
-        list = list.slice(0, 5);
-      }
-      return list;
-    });
-
-    onMounted(() => {
-      const localRecord = localStorage.getItem('sudokuGameRecord');
-      if (localRecord) {
-        gameRecordList.value = JSON.parse(localRecord);
-      }
-      initGameBoard();
-    });
-    const saveGameRecord = () => {
-      const now = new Date();
-      const diffText = { easy:'简单', normal:'标准', hard:'困难', expert:'专家' }[difficulty.value];
-      const record = {
-        diffText: diffText,
-        difficulty: difficulty.value,
-        playTime: timeDisplay.value,
-        saveDate: now.toLocaleString('zh-CN', { hour12: false }),
-        timestamp: now.getTime(),
-        initialBoard: gameBoard.value.map(row => row.map(cell => ({
-          value: cell.fixed ? cell.value : 0,
-          fixed: cell.fixed,
-          notes: [], noteMode: false, error: false, showAnswerPreview: false, answerNum: 0,
-          showHint: false, hintNum: 0
-        }))),
-        answerBoard: correctAnswerBoard
-      };
-      gameRecordList.value.unshift(record);
-      if (gameRecordList.value.length > 10) gameRecordList.value.pop();
-      localStorage.setItem('sudokuGameRecord', JSON.stringify(gameRecordList.value));
-    };
-    const openRecordModal = () => { showRecordModal.value = true; };
-    const closeRecordModal = () => { showRecordModal.value = false; };
-    const deleteGameRecord = (index) => {
-      const tar = filteredRecords.value[index];
-      const idx = gameRecordList.value.findIndex(x => x.timestamp === tar.timestamp);
-      if (idx > -1) {
-        gameRecordList.value.splice(idx,1);
-        localStorage.setItem('sudokuGameRecord', JSON.stringify(gameRecordList.value));
-      }
-    };
-    const clearAllGameRecord = () => {
-      gameRecordList.value = [];
-      localStorage.removeItem('sudokuGameRecord');
-    };
-    const restoreGameFromRecord = (record) => {
-      difficulty.value = { '简单':'easy', '标准':'normal', '困难':'hard', '专家':'expert' }[record.diffText];
-      gameBoard.value = JSON.parse(JSON.stringify(record.initialBoard));
-      correctAnswerBoard = JSON.parse(JSON.stringify(record.answerBoard));
-      resetGameTimer();
-      selectedCellIndex.value = -1;
-      errorCount.value = 0;
-      gameStart.value = false;
-      isPause.value = false;
-      globalAnswerPreview.value = false;
-      closeRecordModal();
-      Swal.fire({
-        icon: 'info',
-        title: '复原成功',
-        text: '点击【开始】即可重新挑战',
-        background: '#1E293B',
-        color: '#fff',
-        timer: 1500,
-        showConfirmButton: false
-      });
-    };
-
-    return {
-      timeDisplay,
-      resetGameTimer,
-      boardFlatList,
-      selectedCellIndex,
-      difficulty,
-      gameStart,
-      isPause,
-      noteMode,
-      enableRealTimeCheck,
-      enableAutoHighlight,
-      errorCount,
-      selectCell,
-      inputNumber,
-      toggleNoteMode,
-      toggleGameStart,
-      eraseCell,
-      getHint,
-      clearAllUserInput,
-      clearAllNote,
-      toggleGlobalAnswerPreview,
-      restartNewGame,
-      printGameBoard,
-      isCellHighlight,
-      showRecordModal,
-      filteredRecords,
-      filterDiff,
-      filterSort,
-      openRecordModal,
-      closeRecordModal,
-      deleteGameRecord,
-      clearAllGameRecord,
-      restoreGameFromRecord
-    };
+    fill();
+    return g;
   }
+
+  function dig(board,count){
+    const set=new Set();
+    while(set.size<count){
+      const r=Math.floor(Math.random()*9);
+      const c=Math.floor(Math.random()*9);
+      const key=`${r},${c}`;
+      if(!set.has(key)){ set.add(key); board[r][c]=0; }
+    }
+  }
+
+  function initGame(){
+    resetTimer();
+    selectedCellIndex.value=-1;
+    errorCount.value=0;
+    globalAnswerPreview.value=false;
+    gameStart.value=false;
+    isPause.value=false;
+
+    answer.value=generateSudoku();
+    const puzzle=JSON.parse(JSON.stringify(answer.value));
+    dig(puzzle,{easy:35,normal:45,hard:55,expert:60}[difficulty.value]);
+
+    board.value=puzzle.map((row,r)=>
+      row.map((v,c)=>({
+        value:v,
+        fixed:v!==0,
+        notes:[],
+        noteMode:false,
+        error:false,
+        showHint:false,
+        hintNum:0,
+        showAnswerPreview:false,
+        answerNum:answer.value[r][c]
+      }))
+    );
+  }
+
+  /* ===== 玩法逻辑 ===== */
+  const selectCell=i=>{ if(!gameStart.value||isPause.value)return; selectedCellIndex.value=i; };
+  const isCellHighlight=i=>{
+    if(!enableAutoHighlight.value||selectedCellIndex.value===-1) return false;
+    const r1=Math.floor(i/9),c1=i%9;
+    const r2=Math.floor(selectedCellIndex.value/9),c2=selectedCellIndex.value%9;
+    return r1===r2||c1===c2;
+  };
+
+  const inputNumber=n=>{
+    if(selectedCellIndex.value===-1) return;
+    const r=Math.floor(selectedCellIndex.value/9),c=selectedCellIndex.value%9;
+    const cell=board.value[r][c];
+    if(cell.fixed) return;
+
+    cell.showHint=false;
+    if(noteMode.value){
+      cell.notes.includes(n)?cell.notes=cell.notes.filter(x=>x!==n):cell.notes.push(n);
+      cell.noteMode=true;
+      cell.value=0;
+    }else{
+      cell.value=n;
+      cell.noteMode=false;
+      cell.notes=[];
+      cell.error=enableRealTimeCheck.value&&n!==answer.value[r][c];
+      recountError();
+    }
+    checkWin();
+  };
+
+  const eraseCell=()=>{
+    if(selectedCellIndex.value===-1) return;
+    const r=Math.floor(selectedCellIndex.value/9),c=selectedCellIndex.value%9;
+    const cell=board.value[r][c];
+    if(cell.fixed) return;
+    cell.value=0; cell.notes=[]; cell.noteMode=false; cell.error=false; cell.showHint=false;
+    recountError();
+  };
+
+  const toggleNoteMode=()=>noteMode.value=!noteMode.value;
+  const getHint=()=>{
+    if(selectedCellIndex.value===-1) return;
+    const r=Math.floor(selectedCellIndex.value/9),c=selectedCellIndex.value%9;
+    const cell=board.value[r][c];
+    if(cell.fixed) return;
+    cell.showHint=!cell.showHint;
+    cell.hintNum=cell.showHint?answer.value[r][c]:0;
+  };
+
+  const clearAllUserInput=()=>{
+    board.value.flat().forEach(c=>{ if(!c.fixed){ c.value=0; c.notes=[]; c.error=false; c.showHint=false; }});
+    errorCount.value=0;
+  };
+  const clearAllNote=()=>board.value.flat().forEach(c=>{ c.notes=[]; c.noteMode=false; });
+
+  const toggleGlobalAnswerPreview=()=>{
+    if(!gameStart.value) return;
+    globalAnswerPreview.value=!globalAnswerPreview.value;
+    board.value.flat().forEach(c=>{ if(!c.fixed){ c.showAnswerPreview=globalAnswerPreview.value; c.answerNum=globalAnswerPreview.value?answer.value[Math.floor(board.value.indexOf(c)/9)][c%9]:0; }});
+  };
+
+  const recountError=()=>{
+    errorCount.value=board.value.flat().filter(c=>c.error).length;
+  };
+
+  const checkWin=()=>{
+    if(board.value.flat().some(c=>!c.fixed&&c.value===0)) return;
+    let err=0;
+    board.value.forEach((row,r)=>row.forEach((c,cc)=>{ c.error=c.value!==answer.value[r][cc]; if(c.error)err++; }));
+    errorCount.value=err;
+    if(err===0){
+      stopTimer();
+      gameStart.value=false;
+      saveRecord();
+      Swal.fire({icon:'success',title:'🎉 通关！',text:`用时 ${timeDisplay.value}`,background:'#1E293B',color:'#fff'});
+    }
+  };
+
+  /* ===== 记录 ===== */
+  const records=ref(JSON.parse(localStorage.getItem('sudoku-records')||'[]'));
+  const showRecordModal=ref(false);
+  const filterDiff=ref('all');
+  const filterSort=ref('latest');
+
+  const filteredRecords=computed(()=>{
+    let list=[...records.value];
+    if(filterDiff.value!=='all') list=list.filter(r=>r.difficulty===filterDiff.value);
+    if(filterSort.value==='latest'){
+      list.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+      list=list.slice(0,10);
+    }else{
+      list.sort((a,b)=>a.seconds-b.seconds);
+      list=list.slice(0,5);
+    }
+    return list;
+  });
+
+  const saveRecord=()=>{
+    const rec={
+      difficulty:difficulty.value,
+      diffText:{easy:'简单',normal:'标准',hard:'困难',expert:'专家'}[difficulty.value],
+      playTime:timeDisplay.value,
+      seconds:totalSeconds.value,
+      saveDate:new Date().toLocaleString(),
+      timestamp:Date.now()
+    };
+    records.value.unshift(rec);
+    records.value=records.value.slice(0,20);
+    localStorage.setItem('sudoku-records',JSON.stringify(records.value));
+  };
+
+  const restoreGameFromRecord=r=>{
+    difficulty.value=r.difficulty;
+    initGame();
+    stopTimer();
+    closeRecordModal();
+  };
+
+  const deleteGameRecord=i=>{
+    const tar=filteredRecords.value[i];
+    records.value=records.value.filter(x=>x.timestamp!==tar.timestamp);
+    localStorage.setItem('sudoku-records',JSON.stringify(records.value));
+  };
+
+  const clearAllGameRecord=()=>{ records.value=[]; localStorage.removeItem('sudoku-records'); };
+
+  /* ===== 监听 ===== */
+  watch(enableRealTimeCheck,v=>{ if(!v) board.value.flat().forEach(c=>c.error=false); recountError(); });
+  watch(difficulty,()=>{ resetTimer(); initGame(); });
+
+  /* ===== 初始化 ===== */
+  initGame();
+
+  return {
+    timeDisplay,
+    difficulty,
+    gameStart,
+    isPause,
+    noteMode,
+    enableRealTimeCheck,
+    enableAutoHighlight,
+    errorCount,
+    boardFlatList,
+    selectedCellIndex,
+    selectCell,
+    isCellHighlight,
+    inputNumber,
+    eraseCell,
+    toggleNoteMode,
+    getHint,
+    clearAllUserInput,
+    clearAllNote,
+    toggleGlobalAnswerPreview,
+    restartNewGame:initGame,
+    printGameBoard:()=>window.print(),
+    toggleGameStart:()=>{
+      if(!gameStart.value){ gameStart.value=true; startTimer(); }
+      else { isPause.value=!isPause.value; isPause.value?stopTimer():startTimer(); }
+    },
+    showRecordModal,
+    openRecordModal:()=>showRecordModal.value=true,
+    closeRecordModal:()=>showRecordModal.value=false,
+    filteredRecords,
+    filterDiff,
+    filterSort,
+    deleteGameRecord,
+    clearAllGameRecord,
+    restoreGameFromRecord
+  };
+}
 }).mount('#app');
 </script>
 </body>

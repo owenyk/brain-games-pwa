@@ -919,7 +919,7 @@ createApp({
         color: '#fff',
         allowOutsideClick: false,
         showConfirmButton: false,
-        timer: 3000
+        timer: 1200
       });
       
       // 安全地更新进度条
@@ -933,7 +933,7 @@ createApp({
         }, 150);
       }
       
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 800));
 
       let isAllCorrect = true;
       let errNum = 0;

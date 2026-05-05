@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" href="https://dummyimage.com/192/0f172a/7dd3fc&text=🧠" />
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -228,7 +229,38 @@
         background: rgba(15, 23, 42, 0.5);
         border-radius: 10px;
         border: 1px solid rgba(125, 211, 252, 0.1);
+        color: #7dd3fc;
+        font-size: 14px;
     }
+    .stat-item span {
+        margin: 0 1px;
+    }
+
+.jump-btn-wrapper {
+    text-align: center;
+    margin: 24px 0;
+}
+
+.jump-btn {
+    display: inline-block;
+    padding: 14px 28px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;
+    background: linear-gradient(135deg, #7dd3fc, #38bdf8);
+    border-radius: 999px;
+    text-decoration: none;
+    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.35);
+    transition: all 0.25s ease;
+}
+
+.jump-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(56, 189, 248, 0.45);
+}
+
+
+
     </style>
     <!-- 注册 Service Worker -->
     <script>
@@ -244,6 +276,12 @@
 
 <body>
     <div class="container">
+<div class="jump-btn-wrapper">
+  <a href="https://brain-games-pwa.pages.dev/" target="_blank" class="jump-btn">
+    🚀 前往新版游戏站
+  </a>
+</div>
+
         <div class="header">
             <h1>脑力训练游戏合集</h1>
             <p>两款经典益智游戏，锻炼逻辑思维与空间想象力</p>
@@ -260,7 +298,7 @@
                     <span class="game-feature">两种主题切换</span>
                 </div>
                 <div class="btn-container">
-                    <a href="klotski-v3.html" class="btn-play klotski">
+                    <a href="/klotski-v3" class="btn-play klotski">
                         <span class="icon">🧩</span>
                         <span>进入游戏</span>
                     </a>
@@ -277,7 +315,7 @@
                     <span class="game-feature">游戏记录保存</span>
                 </div>
                 <div class="btn-container">
-                    <a href="sudoku.html" class="btn-play sudoku">
+                    <a href="/sudoku" class="btn-play sudoku">
                         <span class="icon">🔢</span>
                         <span>进入游戏</span>
                     </a>
@@ -287,18 +325,18 @@
         <div class="instructions">
             <h2>使用说明</h2>
             <ul>
-                <li>确保两个游戏文件 (klotski-v3.html 和 sudok.html) 与本主页文件在同一目录下</li>
+                <li>确保两个游戏文件 (klotski-v3.html 和 sudoku.html) 与本主页文件在同一目录下</li>
                 <li>点击对应的"进入游戏"按钮即可开始游戏</li>
                 <li>两个游戏都支持完整的手机触控操作</li>
                 <li>游戏进度会自动保存在浏览器的本地存储中</li>
                 <li>建议在Chrome、Safari等现代浏览器中使用</li>
                 <li>如果遇到页面无法加载，请检查文件名是否正确（注意中文字符）</li>
-                <li></li>
+                <li>注意：如需分享，请将三个文件（index.html、klotski-v3.html、sudoku.html）放在一起</li>
             </ul>
         </div>
         <div class="footer">
             <p>k © 2026 | 基于Vue.js开发 | 数据存储于浏览器本地</p>
-            <p>注意：如需分享，请将三个文件（index.html、klotski-v3.html、sudoku.html）放在一起</p>
+            
             <!-- 修改统计显示区域 -->
             <div class="stats-container">
                 <div class="stat-item">
@@ -315,42 +353,37 @@
             </div>
         </div>
     </div>
+   
     <script>
-    (function() {
-        // 确保页面完全加载
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initStats);
-        } else {
-            initStats();
-        }
+(function () {
+    var el = document.getElementById('total-uv-display');
+    if (!el) return;
 
-        function initStats() {
-            // 查找显示元素
-            var displayEl = document.getElementById('total-uv-display') ||
-                document.getElementById('total-uv-count') ||
-                document.querySelector('.stat-number');
+    // 本地统计
+    var localCount = parseInt(localStorage.getItem('game_uv_count')) || 0;
+    el.textContent = localCount;
 
-            if (!displayEl) {
-                console.warn('未找到统计显示元素');
-                return;
+    // 等待不蒜子加载
+    var timer = setInterval(function () {
+        var uv = document.getElementById('busuanzi_value_site_uv');
+        if (uv && uv.textContent) {
+            var realCount = parseInt(uv.textContent);
+            if (realCount > localCount) {
+                el.textContent = realCount;
+                localStorage.setItem('game_uv_count', realCount);
             }
-
-            // 统计逻辑
-            var today = new Date().toDateString();
-            var lastDate = localStorage.getItem('last_total_uv_date');
-            var count = parseInt(localStorage.getItem('total_uv_count')) || 0;
-
-            if (lastDate !== today) {
-                count += 1;
-                localStorage.setItem('total_uv_count', count);
-                localStorage.setItem('last_total_uv_date', today);
-            }
-
-            // 立即显示
-            displayEl.textContent = count;
+            clearInterval(timer);
         }
-    })();
+    }, 300);
+
+    // 超时保护
+    setTimeout(function () {
+        clearInterval(timer);
+    }, 5000);
+})();
+
     </script>
+
     <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </body>
 

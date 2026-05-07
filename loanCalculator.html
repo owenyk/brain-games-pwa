@@ -63,6 +63,7 @@
 
         /* 主内容区 */
         .main-content {
+            padding: 16px 12px;
             display: grid;
             grid-template-columns: 400px 1fr;
             gap: 0;
@@ -1027,9 +1028,9 @@
                 gap: 12px;
             }
 
-            /* 取消大容器的 overflow:hidden，避免截断堆叠内容 */
+            /* 保持容器裁剪，防止子元素溢出到外层边框 */
             .loan-calculator {
-                overflow: visible;
+                overflow: hidden;
             }
 
             /* 在堆叠模式下改为底部边框以区分上下区域 */
@@ -1075,6 +1076,27 @@
 
             .summary-card {
                 padding: 10px 8px;
+            }
+
+            /* 调整摘要卡片在超小屏的布局，避免超出父容器 */
+            .summary-cards {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 12px;
+                margin: 16px 0;
+                padding: 0;
+                width: 100%;
+                box-sizing: border-box;
+                overflow: visible;
+            }
+
+            .summary-card {
+                width: 100%;
+                max-width: 100%;
+                padding: 14px 12px;
+                margin: 0;
+                box-sizing: border-box;
+                min-height: 0;
             }
 
             .card-label {
@@ -1205,6 +1227,133 @@
             .slider-thumb {
                 width: 32px;
                 height: 32px;
+            }
+
+            /* 强制页面不出现横向滚动，收敛容器内边距 */
+            html,
+            body {
+                overflow-x: hidden;
+            }
+
+            .container {
+                padding-left: 6px;
+                padding-right: 6px;
+            }
+
+            .loan-calculator {
+                max-width: 100%;
+                margin: 0 auto;
+                border-radius: 12px;
+                overflow: hidden;
+            }
+
+            /* 更紧凑的结果面板 */
+            .result-panel {
+                padding: 12px 10px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            /* 卡片内文本不要强制缩放，限制字体并换行 */
+            .summary-card .card-value {
+                font-size: 18px;
+                white-space: normal;
+                word-break: break-word;
+            }
+
+            .summary-card .card-label,
+            .summary-card .card-note {
+                font-size: 12px;
+            }
+
+            /* 保证卡片圆角与内边距在小屏下不会导致溢出 */
+            .summary-card {
+                border-radius: 8px;
+                padding: 12px 10px;
+                margin-left: auto;
+                margin-right: auto;
+                max-width: calc(100% - 12px);
+            }
+
+            /* 如果还有子元素使用vw或固定宽度，强制收敛 */
+            .loan-calculator [style],
+            .loan-calculator * {
+                max-width: 100% !important;
+            }
+
+            /* 解决内联 min-width 导致的小屏溢出（覆盖特定内联样式） */
+            .input-panel [style*="min-width:"] {
+                min-width: 0 !important;
+                width: auto !important;
+            }
+
+            /* 将徽章从绝对定位切为流式，避免遮挡或超出视口 */
+            .amount-badge {
+                position: static !important;
+                display: inline-block;
+                margin-top: 8px;
+            }
+
+            /* 年份输入与控件自适应宽度 */
+            .year-input-group {
+                flex-direction: row;
+                gap: 8px;
+                justify-content: center;
+            }
+
+            .year-input {
+                width: 80px;
+                max-width: 40%;
+            }
+
+            /* 让类型、年限等按钮在小屏宽度100% */
+            .year-buttons button,
+            .type-btn,
+            .method-btn,
+            .rate-btn {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            /* 模态在小屏时不超出屏幕 */
+            .modal-content {
+                max-width: 100% !important;
+                height: 100%;
+                margin: 0;
+                border-radius: 8px;
+            }
+
+            /* 全面收敛：重置所有子元素最小/最大宽度，防止任何元素突破容器 */
+            .loan-calculator * {
+                min-width: 0 !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                word-break: break-word !important;
+            }
+
+            /* 收敛摘要卡片与图表，避免超出白色容器边界 */
+            .summary-cards {
+                padding: 0 6px;
+                gap: 12px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .summary-card {
+                width: 100%;
+                margin: 0;
+                overflow: hidden;
+            }
+
+            .chart-container {
+                width: 100%;
+                overflow: hidden;
+            }
+
+            #loan-chart {
+                max-width: 100% !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
             }
         }
     </style>

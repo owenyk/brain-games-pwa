@@ -1,5 +1,6 @@
 {
   "name": "脑力训练游戏合集",
+<<<<<<< HEAD
   "short_name": "脑力游戏",
   "description": "数字华容道与数独 - PWA版",
   "start_url": "/",
@@ -10,13 +11,38 @@
   "icons": [
     {
       "src": "/icons/icon-192.png",
+=======
+  "short_name": "脑力训练",
+  "description": "数字华容道 + 数独，经典逻辑思维益智游戏",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://dummyimage.com/192/0f172a/7dd3fc&text=🧠",
+>>>>>>> 0c60d46 (新增网页--贷款计算器，首页加入贷款计算器链接)
       "sizes": "192x192",
       "type": "image/png"
     },
     {
+<<<<<<< HEAD
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
   ]
 }
+=======
+      "src": "https://dummyimage.com/512/0f172a/7dd3fc&text=🧠",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "prefer_related_applications": false,
+  "categories": ["games", "education"]
+}
+
+>>>>>>> 0c60d46 (新增网页--贷款计算器，首页加入贷款计算器链接)

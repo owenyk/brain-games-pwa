@@ -1,4 +1,4 @@
-const CACHE_NAME = 'brain-games-v1';
+const CACHE_NAME = 'brain-games-v8';
 const urlsToCache = [
   '/',
   '/index.html',

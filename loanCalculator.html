@@ -1,0 +1,2512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能贷款计算器</title>
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- ECharts CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <!-- html2canvas for PDF export -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .loan-calculator {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* 头部 */
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #4a6491);
+            color: white;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .header h1 i {
+            margin-right: 12px;
+            color: #3498db;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 0;
+            min-height: 800px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 输入面板 */
+        .input-panel {
+            background: #f8fafc;
+            padding: 18px;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        /* 输入组额外内边距，改善左侧对齐 */
+        .input-group {
+            margin-bottom: 25px;
+            padding: 0 8px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #3498db;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: #3498db;
+        }
+
+        /* 输入组 */
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 14px;
+        }
+
+        /* 房屋总价输入 */
+        .price-input {
+            position: relative;
+        }
+
+        .price-input input {
+            width: 100%;
+            padding: 15px 20px;
+            padding-left: 50px;
+            font-size: 20px;
+            font-weight: 600;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            color: #2c3e50;
+        }
+
+        .price-input .prefix {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            font-weight: 600;
+            color: #3498db;
+        }
+
+        /* 首付比例滑块 */
+        .slider-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .slider-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .slider-percent {
+            font-size: 20px;
+            font-weight: 600;
+            color: #3498db;
+        }
+
+        .slider-track {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            margin: 20px 0;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .slider-fill {
+            position: absolute;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            border-radius: 4px;
+        }
+
+        .slider-thumb {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            background: white;
+            border: 3px solid #3498db;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(52, 152, 219, 0.3);
+        }
+
+        .slider-ticks {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .tick {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        /* 金额显示卡片 */
+        .amount-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .amount-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            position: relative;
+        }
+
+        .amount-label {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 8px;
+        }
+
+        .amount-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .amount-note {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+
+        .amount-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #f0f9ff;
+            color: #0369a1;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* 贷款金额优化提示 */
+        .loan-optimization {
+            background: #f0f9ff;
+            border: 2px solid #bae6fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .optimization-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .optimization-info i {
+            color: #0369a1;
+            font-size: 18px;
+        }
+
+        .optimization-title {
+            font-weight: 600;
+            color: #0369a1;
+        }
+
+        .optimization-detail {
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.4;
+        }
+
+        .optimization-detail span {
+            font-weight: 600;
+            color: #0f766e;
+        }
+
+        /* 贷款年限 */
+        .loan-term-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .year-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .year-input-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .year-input {
+            width: 100px;
+            padding: 12px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .year-dec-btn,
+        .year-inc-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #3498db;
+            background: white;
+            color: #3498db;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .year-dec-btn:hover,
+        .year-inc-btn:hover {
+            background: #3498db;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* 贷款类型 */
+        .loan-type {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .type-btn {
+            padding: 20px 10px;
+            text-align: center;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .type-btn:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .type-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .type-btn i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* 利率设置 */
+        .rate-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .rate-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .rate-btn {
+            padding: 8px 15px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .rate-btn:hover {
+            border-color: #3498db;
+        }
+
+        .rate-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+
+        .rate-input-wrapper {
+            position: relative;
+        }
+
+        .rate-input {
+            width: 100%;
+            padding: 15px 20px;
+            padding-right: 40px;
+            font-size: 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .rate-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .rate-suffix {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #718096;
+            font-weight: 600;
+        }
+
+        /* 还款方式 */
+        .repayment-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .method-btn {
+            padding: 20px 15px;
+            text-align: center;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .method-btn:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .method-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+
+        .method-btn i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .method-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .method-desc {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        /* 结果面板 */
+        .result-panel {
+            padding: 30px;
+            background: white;
+        }
+
+        /* 摘要卡片 */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .summary-card {
+            padding: 18px 12px;
+            border-radius: 10px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+        }
+
+        .card-1 {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        .card-2 {
+            background: linear-gradient(135deg, #2ecc71, #27ae83);
+        }
+
+        .card-3 {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .card-4 {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+
+        .card-5 {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+
+        .card-6 {
+            background: linear-gradient(135deg, #6abc8d, #16a088);
+        }
+
+        .card-label {
+            font-size: 12px;
+            opacity: 0.95;
+            margin-bottom: 8px;
+            text-align: center;
+            line-height: 1.2;
+            letter-spacing: 0.3px;
+        }
+
+        .card-value {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            text-align: center;
+            letter-spacing: 0.4px;
+        }
+
+        .card-note {
+            font-size: 11px;
+            opacity: 0.9;
+            text-align: center;
+            margin-top: 6px;
+        }
+
+        /* range slider 更美观 */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 12px;
+            border-radius: 8px;
+            background: linear-gradient(90deg, #e6eef7, #f0fdf4);
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #3498db;
+            border: 4px solid white;
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.35);
+            cursor: pointer;
+        }
+
+        /* 前5年还款统计样式 */
+        .ratio-controls {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .ratio-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .ratio-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .ratio-label {
+            font-size: 13px;
+            color: #4a5568;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .ratio-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        /* 卡片内的年份控制按钮样式 */
+        .card-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin: 8px 0;
+            width: 100%;
+        }
+
+        .years-display {
+            font-size: 12px;
+            color: white;
+            font-weight: 600;
+            min-width: 40px;
+            text-align: center;
+            opacity: 0.9;
+        }
+
+        .year-btn {
+            width: 24px;
+            height: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 3px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        .year-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1);
+        }
+
+        .year-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .year-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .year-btn.minus {
+            border-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.3);
+        }
+
+        .year-btn.plus {
+            border-color: #2ecc71;
+            background: rgba(46, 204, 113, 0.3);
+        }
+
+        .year-btn.plus:hover:not(:disabled) {
+            background: rgba(46, 204, 113, 0.5);
+        }
+
+
+
+        /* 图表容器 */
+        .chart-container {
+            margin: 30px 0;
+        }
+
+        #loan-chart {
+            width: 100%;
+            height: 300px;
+        }
+
+        /* 还款明细 */
+        .repayment-details {
+            margin-top: 30px;
+        }
+
+        .details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .export-btn {
+            padding: 8px 15px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+
+        .export-btn:hover {
+            background: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .export-btn.excel {
+            background: #217346;
+        }
+
+        .export-btn.excel:hover {
+            background: #2e8b57;
+        }
+
+        .export-btn.csv {
+            background: #8B4513;
+        }
+
+        .export-btn.csv:hover {
+            background: #A0522D;
+        }
+
+        .export-btn.pdf {
+            background: #c0392b;
+        }
+
+        .export-btn.pdf:hover {
+            background: #e74c3c;
+        }
+
+        .view-more-btn {
+            padding: 8px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .view-more-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .repayment-table {
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            /*overflow: visible;  移除滚动 */
+            overflow: hidden;
+            /*max-height: 400px;*/
+            /*overflow-y: auto;*/
+
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 0.5fr 1fr 1fr 1fr 1fr;
+            background: #f7fafc;
+            padding: 15px 20px;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 0.5fr 1fr 1fr 1fr 1fr;
+            padding: 12px 20px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .table-row:nth-child(even) {
+            background: #fafbfc;
+        }
+
+        .table-row:hover {
+            background: #edf2f7;
+        }
+
+        /* 模态框样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 1200px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 20px 30px;
+            background: linear-gradient(135deg, #2c3e50, #4a6491);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .modal-body {
+            padding: 30px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .modal-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .period-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .period-input {
+            width: 100px;
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+        }
+
+        .period-btn {
+            padding: 8px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .period-btn:hover {
+            background: #2980b9;
+        }
+
+        .modal-export-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-export-btn {
+            padding: 8px 20px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-export-btn:hover {
+            background: #3498db;
+        }
+
+        .modal-export-btn.excel {
+            background: #217346;
+        }
+
+        .modal-export-btn.csv {
+            background: #8B4513;
+        }
+
+        .modal-export-btn.pdf {
+            background: #c0392b;
+        }
+
+        .modal-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .modal-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .modal-table thead {
+            position: sticky;
+            top: 0;
+            background: #f7fafc;
+        }
+
+        .modal-table th {
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .modal-table td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .modal-table tbody tr:nth-child(even) {
+            background: #fafbfc;
+        }
+
+        .modal-table tbody tr:hover {
+            background: #edf2f7;
+        }
+
+        .footer {
+        margin-top: 30px;
+        text-align: center;
+        font-size: 12px;
+        color: #64748b;
+        padding: 20px 0 10px;
+        border-top: 1px solid rgba(100, 116, 139, 0.3);
+    }
+
+    .footer a {
+        color: #7dd3fc;
+        text-decoration: none;
+    }
+
+    .footer a:hover {
+        text-decoration: underline;
+    }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: repeat(2, 1fr);
+                /* 手机端回到2列 */
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .loan-term,
+            .loan-type {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .amount-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .export-buttons {
+                flex-wrap: wrap;
+            }
+
+            .modal-controls {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            .period-controls {
+                flex-wrap: wrap;
+            }
+
+            .ratio-display {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .summary-card {
+                padding: 10px 6px;
+                min-height: 100px;
+            }
+
+            .card-label {
+                font-size: 10px;
+            }
+
+            .card-value {
+                font-size: 16px;
+            }
+
+            .year-btn {
+                width: 22px;
+                height: 22px;
+                font-size: 12px;
+            }
+
+            .years-display {
+                font-size: 11px;
+                min-width: 35px;
+            }
+
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .input-panel,
+            .result-panel {
+                padding: 20px 15px;
+            }
+
+            .loan-term,
+            .loan-type {
+                grid-template-columns: 1fr;
+            }
+
+            .repayment-methods {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-body {
+                padding: 15px;
+            }
+
+            .table-header,
+            .table-row {
+                grid-template-columns: 0.6fr 1fr 1fr 1fr 1fr;
+                padding: 10px 15px;
+                font-size: 13px;
+            }
+        }
+    </style>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div id="app" class="container">
+        <div class="loan-calculator">
+            <!-- 头部 -->
+            <div class="header">
+                <h1><i class="fas fa-calculator"></i> 智能贷款计算器</h1>
+            </div>
+            <!-- 主内容区 -->
+            <div class="main-content">
+                <!-- 左侧：输入面板 -->
+                <div class="input-panel">
+                    <h2 class="section-title">
+                        <i class="fas fa-sliders-h"></i> 贷款参数设置
+                    </h2>
+                    <!-- 房屋总价 -->
+                    <div class="input-group">
+                        <label class="input-label">房屋总价（元）</label>
+                        <div class="price-input">
+                            <input type="number" v-model.number="housePrice" @input="updateCalculations"
+                                placeholder="输入房屋总价" min="0" step="1000">
+                            <span class="prefix">¥</span>
+                        </div>
+                    </div>
+                    <!-- 首付比例滑块 -->
+                    <div class="input-group">
+                        <label class="input-label">首付比例</label>
+                        <div class="slider-container">
+                            <div class="slider-header">
+                                <div class="slider-value">{{ formatCurrency(downPaymentAmount) }}</div>
+                                <div class="slider-percent">{{ downPaymentPercent }}%</div>
+                            </div>
+                            <div class="slider-track" @click="updateSliderPosition" ref="sliderTrack">
+                                <div class="slider-fill" :style="{ width: downPaymentPercent + '%' }"></div>
+                                <div class="slider-thumb" :style="{ left: downPaymentPercent + '%' }"
+                                    @mousedown="startDrag" @touchstart="startDrag"></div>
+                            </div>
+                            <div class="slider-ticks">
+                                <span class="tick">0%</span>
+                                <span class="tick">20%</span>
+                                <span class="tick">40%</span>
+                                <span class="tick">60%</span>
+                                <span class="tick">80%</span>
+                                <span class="tick">100%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 贷款金额优化提示 -->
+                    <div class="loan-optimization" v-if="showOptimization">
+                        <div class="optimization-info">
+                            <i class="fas fa-info-circle"></i>
+                            <div class="optimization-title">贷款金额已优化</div>
+                        </div>
+                        <div class="optimization-detail">
+                            原始贷款金额：<span>{{ formatCurrency(originalLoanAmount) }}</span><br>
+                            优化后贷款金额：<span>{{ formatCurrency(optimizedLoanAmount) }}</span><br>
+                            差额加入首付：<span>{{ formatCurrency(loanAdjustment) }}</span>
+                        </div>
+                    </div>
+                    <!-- 首付金额和贷款金额 -->
+                    <div class="amount-cards">
+                        <div class="amount-card">
+                            <div class="amount-label">首付金额</div>
+                            <div class="amount-value">{{ formatCurrency(optimizedDownPayment) }}</div>
+                            <div class="amount-note">{{ downPaymentPercent }}% 首付比例</div>
+                            <div class="amount-badge" v-if="loanAdjustment > 0">
+                                +{{ formatCurrency(loanAdjustment) }}
+                            </div>
+                        </div>
+                        <div class="amount-card">
+                            <div class="amount-label">贷款金额</div>
+                            <div class="amount-value">{{ formatCurrency(optimizedLoanAmount) }}</div>
+                            <div class="amount-note">已取整至万位</div>
+                            <div class="amount-badge" v-if="optimizedLoanAmount % 10000 === 0">
+                                <i class="fas fa-check"></i> 整万
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 贷款年限 -->
+                    <div class="loan-term-controls">
+                        <div class="year-buttons">
+                            <button v-for="year in [5, 10, 15, 20, 25, 30]" :key="year"
+                                :class="['term-btn', { active: loanYears === year }]"
+                                @click="loanYears = year; updateCalculations()">
+                                {{ year }}年
+                            </button>
+                        </div>
+                        <div class="year-input-group">
+                            <button type="button" class="year-dec-btn" @click="decreaseYear">-</button>
+                            <input v-model.number="loanYears" type="number" class="year-input" min="1" max="30"
+                                @input="updateCalculations">
+                            <button type="button" class="year-inc-btn" @click="increaseYear">+</button>
+                        </div>
+                    </div>
+                    <!-- 贷款类型 -->
+                    <div class="input-group">
+                        <label class="input-label">贷款类型</label>
+                        <div class="loan-type">
+                            <button :class="['type-btn', { active: loanType === 'commercial' }]"
+                                @click="loanType = 'commercial'; updateCalculations()">
+                                <i class="fas fa-building"></i>
+                                商业贷款
+                            </button>
+                            <button :class="['type-btn', { active: loanType === 'provident' }]"
+                                @click="loanType = 'provident'; updateCalculations()">
+                                <i class="fas fa-hand-holding-usd"></i>
+                                公积金贷款
+                            </button>
+                            <button :class="['type-btn', { active: loanType === 'combined' }]"
+                                @click="loanType = 'combined'; updateCalculations()">
+                                <i class="fas fa-blender"></i>
+                                组合贷款
+                            </button>
+                        </div>
+                        <!-- 组合贷比例滑块，仅在选择组合贷款时显示 -->
+                        <div v-if="loanType === 'combined'" style="margin-top:12px;">
+                            <div style="display:flex; gap:12px; align-items:center;">
+                                <div style="font-size:13px; color:#475569; font-weight:600; min-width:96px;">组合(商:公)比例：
+                                </div>
+                                <input type="range" min="1" max="9" step="1" v-model.number="combinedCommercialPart"
+                                    @input="updateCalculations" style="flex:1;">
+                                <div style="min-width:90px; text-align:center; font-weight:700;">{{
+                                    combinedCommercialPart }} : {{ 10 - combinedCommercialPart }}</div>
+                            </div>
+                            <div style="margin-top:8px; display:flex; gap:12px; align-items:center;">
+                                <div style="font-size:12px; color:#718096;">商贷金额：</div>
+                                <div style="font-weight:700; color:#0f172a; min-width:120px;">{{
+                                    formatCurrency(commercialAllocatedAmount) }}</div>
+                                <div style="font-size:12px; color:#718096;">公积金金额：</div>
+                                <div style="font-weight:700; color:#0f172a; min-width:120px;">{{
+                                    formatCurrency(providentAllocatedAmount) }}</div>
+                                <div style="margin-left:auto; font-size:12px; color:#718096">默认 5:5，可选 1:9 - 9:1</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 商业贷款利率 -->
+                    <div class="input-group" v-if="loanType !== 'provident'">
+                        <label class="input-label">商业贷款利率（%）</label>
+                        <div class="rate-container">
+                            <div class="rate-options">
+                                <button v-for="rate in commercialRates" :key="rate"
+                                    :class="['rate-btn', { active: commercialRate === rate }]"
+                                    @click="commercialRate = rate; updateCalculations()">
+                                    {{ rate }}%
+                                </button>
+                            </div>
+                            <div class="rate-input-wrapper">
+                                <input type="number" v-model.number="commercialRate" class="rate-input" min="0.1"
+                                    max="10" step="0.01" @input="updateCalculations">
+                                <span class="rate-suffix">%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 公积金贷款利率 -->
+                    <div class="input-group" v-if="loanType !== 'commercial'">
+                        <label class="input-label">公积金贷款利率（%）</label>
+                        <div class="rate-container">
+                            <div class="rate-options">
+                                <button v-for="rate in providentRates" :key="rate"
+                                    :class="['rate-btn', { active: providentRate === rate }]"
+                                    @click="providentRate = rate; updateCalculations()">
+                                    {{ rate }}%
+                                </button>
+                            </div>
+                            <div class="rate-input-wrapper">
+                                <input type="number" v-model.number="providentRate" class="rate-input" min="0.1" max="5"
+                                    step="0.01" @input="updateCalculations">
+                                <span class="rate-suffix">%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 还款方式 -->
+                    <div class="input-group">
+                        <label class="input-label">还款方式</label>
+                        <div class="repayment-methods">
+                            <button :class="['method-btn', { active: repaymentMethod === 'equalPrincipalInterest' }]"
+                                @click="repaymentMethod = 'equalPrincipalInterest'; updateCalculations()">
+                                <i class="fas fa-chart-line"></i>
+                                <div class="method-name">等额本息</div>
+                                <div class="method-desc">每月还款相同</div>
+                            </button>
+                            <button :class="['method-btn', { active: repaymentMethod === 'equalPrincipal' }]"
+                                @click="repaymentMethod = 'equalPrincipal'; updateCalculations()">
+                                <i class="fas fa-chart-bar"></i>
+                                <div class="method-name">等额本金</div>
+                                <div class="method-desc">逐月递减</div>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- 计算按钮 -->
+                    <button class="view-more-btn" @click="updateCalculations"
+                        style="width: 100%; padding: 18px; margin-top: 20px;">
+                        <i class="fas fa-calculator"></i> 立即计算
+                    </button>
+                </div>
+                <!-- 右侧：结果面板 -->
+                <div class="result-panel">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-pie"></i> 计算结果
+                        <i style="margin-left:auto; font-size:11px; color:#718096">仅供参考，以实际为主</i>
+                    </h2>
+
+                    <!-- 摘要卡片 -->
+                    <!-- 摘要卡片部分 -->
+                    <div class="summary-cards">
+                        <!-- 组合贷按期查看控制（仅组合贷时显示） -->
+                        <!-- 卡片1：月供 -->
+                        <div class="summary-card card-1">
+                            <div class="card-label">月供</div>
+                            <div class="card-value">{{ formatCurrency(monthlyPayment) }}</div>
+                            <div class="card-note">{{ repaymentMethod === 'equalPrincipalInterest' ? '每月相同' : '首月金额' }}
+                            </div>
+                        </div>
+                        <!-- 卡片2：总利息 -->
+                        <div class="summary-card card-2">
+                            <div class="card-label">总利息</div>
+                            <div class="card-value">{{ formatCurrency(totalInterest) }}</div>
+                            <div class="card-note">贷款总成本</div>
+                        </div>
+                        <!-- 卡片3：还款总额 -->
+                        <div class="summary-card card-3">
+                            <div class="card-label">还款总额</div>
+                            <div class="card-value">{{ formatCurrency(totalPayment) }}</div>
+                            <div class="card-note">本金 + 利息</div>
+                        </div>
+                        <!-- 卡片4：每月递减 -->
+                        <div class="summary-card card-4">
+                            <div class="card-label">{{ repaymentMethod === 'equalPrincipalInterest' ? '月供不变' : '每月递减' }}
+                            </div>
+                            <div class="card-value">{{ repaymentMethod === 'equalPrincipalInterest' ? '0' :
+                                formatCurrency(monthlyDecrease) }}</div>
+                            <div class="card-note">{{ repaymentMethod === 'equalPrincipalInterest' ? '每月还款相同' :
+                                '等额本金递减额' }}</div>
+                        </div>
+                        <!-- 卡片5：本金占比（带年份控制） -->
+                        <div
+                            style="grid-column:1 / -1; display:flex; justify-content:center; align-items:center; gap:12px; margin-bottom:6px;">
+                            <button type="button" class="year-btn minus" @click="decreaseDisplayYears"
+                                :disabled="displayYears <= 1" title="减少年份">-</button>
+                            <div class="years-display"
+                                style="color:#ffffff; font-weight:700; background:linear-gradient(135deg,#3498db,#2ecc71); padding:6px 10px; border-radius:6px;">
+                                {{ displayYears }}年</div>
+                            <button type="button" class="year-btn plus" @click="increaseDisplayYears"
+                                :disabled="displayYears >= loanYears" title="增加年份">+</button>
+                            <div style="color:#475569; font-size:13px; margin-left:8px;">控制本金与利息占比显示年数</div>
+                        </div>
+                        <div class="summary-card card-5">
+                            <div class="card-label">前{{ displayYears }}年本金占比</div>
+                            <div class="card-value">{{ principalRatioByYears.toFixed(1) }}%</div>
+                            <div class="card-note">已还本金比例</div>
+                        </div>
+                        <!-- 卡片6：利息占比（带年份控制） -->
+                        <div class="summary-card card-6">
+                            <div class="card-label">前{{ displayYears }}年利息占比</div>
+                            <div class="card-value">{{ interestRatioByYears.toFixed(1) }}%</div>
+                            <div class="card-note">已还利息比例</div>
+                        </div>
+                        <div v-if="loanType === 'combined'"
+                            style="grid-column:1 / -1; display:flex; align-items:center; gap:12px; margin-bottom:6px;">
+                            <div style="font-size:13px; color:#475569; font-weight:600;">期数：</div>
+                            <input type="number" v-model.number="allocationPeriod" :min="1" :max="totalMonths"
+                                @input="updateCalculations"
+                                style="width:100px; padding:6px; font-weight:700; text-align:center; border-radius:6px; border:1px solid #e2e8f0;">
+                            <div style="color:#475569;">/ {{ totalMonths }} 期</div>
+                            <div style="margin-left:8px; display:flex; gap:8px; align-items:center;">
+                                <label style="font-size:12px; color:#475569;">查看：</label>
+                                <select v-model="allocationMode" @change="updateCalculations"
+                                    style="padding:6px; border-radius:6px; border:1px solid #e2e8f0;">
+                                    <option value="single">本期</option>
+                                    <option value="cumulative">累计至本期</option>
+                                </select>
+                            </div>
+                            <div style="margin-left:12px; color:#718096; font-size:12px;">选择要查看的期数，支持“本期/累计至本期”</div>
+                        </div>
+                        <!-- 分配预览：商业 / 公积金 -->
+                        <div v-if="loanType === 'combined'" class="summary-card card-5"
+                            style="background:linear-gradient(135deg,#6b7280,#4b5563);">
+                            <div class="card-label">商贷（第 {{ allocationPeriod }} 期）</div>
+                            <div
+                                style="margin-top:10px; padding-top:8px; border-top:1px dashed rgba(255,255,255,0.12); color:#f8fafc;">
+                                <div style="display:flex; gap:12px;">
+                                    <div style="flex:1; font-size:13px;">本金：<span style="font-weight:700">{{
+                                            formatCurrency(commercialMonthData.principal) }}</span></div>
+                                    <div style="flex:1; font-size:13px;">利息：<span style="font-weight:700">{{
+                                            formatCurrency(commercialMonthData.interest) }}</span></div>
+                                    <div style="flex:1; font-size:13px;">合计：<span style="font-weight:700">{{
+                                            formatCurrency(commercialMonthData.monthlyPayment) }}</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-if="loanType === 'combined'" class="summary-card card-6"
+                            style="background:linear-gradient(135deg,#10b981,#0ea5a4);">
+                            <div class="card-label">公积金（第 {{ allocationPeriod }} 期）</div>
+                            <div
+                                style="margin-top:10px; padding-top:8px; border-top:1px dashed rgba(255,255,255,0.12); color:#f8fafc;">
+                                <div style="display:flex; gap:12px;">
+                                    <div style="flex:1; font-size:13px;">本金：<span style="font-weight:700">{{
+                                            formatCurrency(providentMonthData.principal) }}</span></div>
+                                    <div style="flex:1; font-size:13px;">利息：<span style="font-weight:700">{{
+                                            formatCurrency(providentMonthData.interest) }}</span></div>
+                                    <div style="flex:1; font-size:13px;">合计：<span style="font-weight:700">{{
+                                            formatCurrency(providentMonthData.monthlyPayment) }}</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 图表区域 -->
+                    <div class="input-group chart-container">
+                        <label class="input-label">还款趋势分析</label>
+                        <div id="loan-chart"></div>
+                    </div>
+                    <!-- 还款明细 -->
+                    <div class="repayment-details">
+                        <div class="details-header">
+                            <h3 class="section-title" style="border-bottom: none; padding-bottom: 0; margin: 0;">
+                                <!-- <i class="fas fa-list-alt"></i> 还款明细（前{{ displayPeriod }}期） -->
+                                <i class="fas fa-list-alt"></i> 还款明细（前12期）
+                            </h3>
+                            <div class="export-buttons">
+                                <button class="export-btn excel" @click="exportMainTable('excel')">
+                                    <i class="fas fa-file-excel"></i> Excel
+                                </button>
+                                <button class="export-btn csv" @click="exportMainTable('csv')">
+                                    <i class="fas fa-file-csv"></i> CSV
+                                </button>
+                                <button class="export-btn pdf" @click="exportMainTable('pdf')">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </button>
+                                <button class="view-more-btn" @click="showDetailedModal = true">
+                                    <i class="fas fa-expand-alt"></i> 查看更多
+                                </button>
+                            </div>
+                        </div>
+                        <div class="repayment-table">
+                            <div class="table-header">
+                                <div>期数</div>
+                                <div>月供</div>
+                                <div>本金</div>
+                                <div>利息</div>
+                                <div>剩余本金</div>
+                            </div>
+                            <!-- <div v-for="item in repaymentTable" :key="item.month" class="table-row"> -->
+                            <div v-for="item in repaymentTable.slice(0, 12)" :key="item.month" class="table-row">
+                                <div>第{{ item.month }}期</div>
+                                <div>{{ formatCurrency(item.monthlyPayment) }}</div>
+                                <div>{{ formatCurrency(item.principal) }}</div>
+                                <div>{{ formatCurrency(item.interest) }}</div>
+                                <div>{{ formatCurrency(item.remainingPrincipal) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 详细还款明细模态框 -->
+        <div :class="['modal-overlay', { show: showDetailedModal }]" @click.self="showDetailedModal = false">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-table"></i> 详细还款明细</h2>
+                    <button class="modal-close" @click="showDetailedModal = false">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-controls">
+                        <div class="period-controls">
+                            <span>显示期数：</span>
+                            <input type="number" v-model.number="modalPeriod" class="period-input" :min="1"
+                                :max="totalMonths" @change="updateModalTable">
+                            <span> / {{ totalMonths }} 期</span>
+                            <button class="period-btn" @click="showAllPeriods">显示全部</button>
+                        </div>
+                        <div class="modal-export-buttons">
+                            <button class="modal-export-btn excel" @click="exportModalTable('excel')">
+                                <i class="fas fa-file-excel"></i> 导出Excel
+                            </button>
+                            <button class="modal-export-btn csv" @click="exportModalTable('csv')">
+                                <i class="fas fa-file-csv"></i> 导出CSV
+                            </button>
+                            <button class="modal-export-btn pdf" @click="exportModalTable('pdf')">
+                                <i class="fas fa-file-pdf"></i> 导出PDF
+                            </button>
+                        </div>
+                    </div>
+                    <div class="modal-table-container">
+                        <table class="modal-table">
+                            <thead>
+                                <tr>
+                                    <th>期数</th>
+                                    <th>月供（元）</th>
+                                    <th>本金（元）</th>
+                                    <th>利息（元）</th>
+                                    <th>剩余本金（元）</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in detailedRepaymentTable" :key="item.month">
+                                    <td>第{{ item.month }}期</td>
+                                    <td>{{ formatCurrency(item.monthlyPayment) }}</td>
+                                    <td>{{ formatCurrency(item.principal) }}</td>
+                                    <td>{{ formatCurrency(item.interest) }}</td>
+                                    <td>{{ formatCurrency(item.remainingPrincipal) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const { createApp, ref, computed, watch, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                // 响应式数据
+                const housePrice = ref(586000);
+                const downPaymentPercent = ref(20);
+                const loanYears = ref(20);
+                const loanType = ref('combined');
+                const commercialRate = ref(3.1);
+                const providentRate = ref(2.6);
+                const repaymentMethod = ref('equalPrincipalInterest');
+                const showDetailedModal = ref(false);
+                const modalPeriod = ref(12);
+                // const displayPeriod = ref(12);
+
+                // 常用利率选项
+                const commercialRates = ref([3.1, 3.8, 4.2, 4.9]);
+                const providentRates = ref([2.6, 2.85, 3.1, 3.25]);
+
+                // 组合贷比例（商业部分占比的分子，范围 1-9，默认 5 表示 5:5）
+                const combinedCommercialPart = ref(2);
+
+                // 图表实例
+                let chartInstance = null;
+                const sliderTrack = ref(null);
+                let isDragging = false;
+
+                // 核心计算属性
+                const downPaymentAmount = computed(() => {
+                    return Math.round(housePrice.value * downPaymentPercent.value / 100);
+                });
+
+                const originalLoanAmount = computed(() => {
+                    return housePrice.value - downPaymentAmount.value;
+                });
+
+                // 贷款金额取整到万位
+                const optimizedLoanAmount = computed(() => {
+                    const amount = originalLoanAmount.value;
+                    return Math.floor(amount / 10000) * 10000;
+                });
+
+                // 计算调整差额
+                const loanAdjustment = computed(() => {
+                    return originalLoanAmount.value - optimizedLoanAmount.value;
+                });
+
+                // 优化后的首付金额
+                const optimizedDownPayment = computed(() => {
+                    return downPaymentAmount.value + loanAdjustment.value;
+                });
+
+                // 组合贷各部分金额预览（公积金向下取整到万，剩余为商贷）
+                const providentAllocatedAmount = computed(() => {
+                    const providentShare = (10 - combinedCommercialPart.value) / 10;
+                    // 向下取整到万位
+                    const raw = optimizedLoanAmount.value * providentShare;
+                    const floored = Math.floor(raw / 10000) * 10000;
+                    return floored;
+                });
+
+                const commercialAllocatedAmount = computed(() => {
+                    return optimizedLoanAmount.value - providentAllocatedAmount.value;
+                });
+
+                // 是否显示优化提示
+                const showOptimization = computed(() => {
+                    return loanAdjustment.value > 0 && optimizedLoanAmount.value > 0;
+                });
+
+                const totalMonths = computed(() => {
+                    return loanYears.value * 12;
+                });
+
+                // 增加年限
+                const increaseYear = () => {
+                    if (loanYears.value < 30) {
+                        loanYears.value++;
+                        updateCalculations();
+                    }
+                };
+
+                // 减少年限
+                const decreaseYear = () => {
+                    if (loanYears.value > 1) {
+                        loanYears.value--;
+                        updateCalculations();
+                    }
+                };
+
+                // 实际有效利率
+                const effectiveRate = computed(() => {
+                    if (loanType.value === 'commercial') return commercialRate.value;
+                    if (loanType.value === 'provident') return providentRate.value;
+                    if (loanType.value === 'combined') {
+                        const commercialShare = combinedCommercialPart.value / 10;
+                        const providentShare = (10 - combinedCommercialPart.value) / 10;
+                        return commercialRate.value * commercialShare + providentRate.value * providentShare;
+                    }
+                    return 0;
+                });
+
+                // 等额本息计算公式
+                const calculateEqualPrincipalInterest = (principal, annualRate, years) => {
+                    const monthlyRate = annualRate / 100 / 12;
+                    const months = years * 12;
+
+                    if (monthlyRate === 0 || months === 0 || principal <= 0) {
+                        return 0;
+                    }
+
+                    const monthlyPayment = principal * monthlyRate * Math.pow(1 + monthlyRate, months) /
+                        (Math.pow(1 + monthlyRate, months) - 1);
+                    return isFinite(monthlyPayment) ? monthlyPayment : 0;
+                };
+
+                // 等额本金计算公式
+                const calculateEqualPrincipal = (principal, annualRate, years) => {
+                    const monthlyRate = annualRate / 100 / 12;
+                    const months = years * 12;
+
+                    if (principal <= 0 || months === 0) {
+                        return { firstMonth: 0, monthlyDecrease: 0 };
+                    }
+
+                    const principalPerMonth = principal / months;
+                    const firstMonth = principalPerMonth + principal * monthlyRate;
+                    const monthlyDecrease = principalPerMonth * monthlyRate;
+
+                    return {
+                        firstMonth: isFinite(firstMonth) ? firstMonth : 0,
+                        monthlyDecrease: isFinite(monthlyDecrease) ? monthlyDecrease : 0
+                    };
+                };
+
+                // 组合贷款计算
+                // const calculateCombinedLoan = () => {
+                //     // 使用已计算的分配金额（考虑公积金向下取整后的值）
+                //     const commercialAmount = Number(commercialAllocatedAmount.value) || 0;
+                //     const publicAmount = Number(providentAllocatedAmount.value) || 0;
+
+                //     if (repaymentMethod.value === 'equalPrincipalInterest') {
+                //         const publicMonthly = calculateEqualPrincipalInterest(publicAmount, providentRate.value, loanYears.value);
+                //         const commercialMonthly = calculateEqualPrincipalInterest(commercialAmount, commercialRate.value, loanYears.value);
+                //         return publicMonthly + commercialMonthly;
+                //     } else {
+                //         const publicPart = calculateEqualPrincipal(publicAmount, providentRate.value, loanYears.value);
+                //         const commercialPart = calculateEqualPrincipal(commercialAmount, commercialRate.value, loanYears.value);
+                //         return {
+                //             firstMonth: publicPart.firstMonth + commercialPart.firstMonth,
+                //             monthlyDecrease: publicPart.monthlyDecrease + commercialPart.monthlyDecrease
+                //         };
+                //     }
+                // };
+
+                // 全局配置对象
+                const AppConfig = {
+                    debug: true,  // 调试开关，发布时可设置为 false
+                    logLevel: 'detail'  // 日志级别：'none' | 'basic' | 'detail'
+                };
+
+                const calculateCombinedLoan = () => {
+                    // 使用已计算的分配金额
+                    const commercialAmount = Number(commercialAllocatedAmount.value) || 0;
+                    const publicAmount = Number(providentAllocatedAmount.value) || 0;
+
+                    // 定义打印函数
+                    const debugLog = (message, data = null, level = 'basic') => {
+                        if (!AppConfig.debug) return;
+                        if (AppConfig.logLevel === 'none') return;
+                        if (AppConfig.logLevel === 'basic' && level === 'detail') return;
+
+                        if (data !== null) {
+                            console.log(`[房贷计算器] ${message}`, data);
+                        } else {
+                            console.log(`[房贷计算器] ${message}`);
+                        }
+                    };
+
+                    if (AppConfig.debug && AppConfig.logLevel !== 'none') {
+                        console.group('=== 组合贷款计算详情 ===');
+                        debugLog(`商业贷款: ${commercialAmount.toLocaleString()}元, 利率: ${(commercialRate.value * 100).toFixed(2)}%`);
+                        debugLog(`公积金贷款: ${publicAmount.toLocaleString()}元, 利率: ${(providentRate.value * 100).toFixed(2)}%`);
+                        debugLog(`贷款年限: ${loanYears.value}年, 还款方式: ${repaymentMethod.value === 'equalPrincipalInterest' ? '等额本息' : '等额本金'}`);
+                        debugLog(`总计金额: ${(commercialAmount + publicAmount).toLocaleString()}元`, null, 'detail');
+                    }
+
+                    if (repaymentMethod.value === 'equalPrincipalInterest') {
+                        const publicMonthly = calculateEqualPrincipalInterest(publicAmount, providentRate.value, loanYears.value);
+                        const commercialMonthly = calculateEqualPrincipalInterest(commercialAmount, commercialRate.value, loanYears.value);
+
+                        if (AppConfig.debug) {
+                            debugLog(`公积金月供: ${publicMonthly.toFixed(2)}元`);
+                            debugLog(`商业贷款月供: ${commercialMonthly.toFixed(2)}元`);
+                            debugLog(`总计月供: ${(publicMonthly + commercialMonthly).toFixed(2)}元`);
+
+                            if (AppConfig.logLevel === 'detail') {
+                                const publicTotal = publicMonthly * loanYears.value * 12;
+                                const commercialTotal = commercialMonthly * loanYears.value * 12;
+                                debugLog(`公积金总还款: ${publicTotal.toFixed(2)}元`, null, 'detail');
+                                debugLog(`商业贷款总还款: ${commercialTotal.toFixed(2)}元`, null, 'detail');
+                            }
+                            console.groupEnd();
+                        }
+
+                        return publicMonthly + commercialMonthly;
+                    } else {
+                        const publicPart = calculateEqualPrincipal(publicAmount, providentRate.value, loanYears.value);
+                        const commercialPart = calculateEqualPrincipal(commercialAmount, commercialRate.value, loanYears.value);
+
+                        if (AppConfig.debug) {
+                            debugLog(`公积金首月: ${publicPart.firstMonth.toFixed(2)}元, 月递减: ${publicPart.monthlyDecrease.toFixed(2)}元`);
+                            debugLog(`商业贷款首月: ${commercialPart.firstMonth.toFixed(2)}元, 月递减: ${commercialPart.monthlyDecrease.toFixed(2)}元`);
+                            debugLog(`总计首月: ${(publicPart.firstMonth + commercialPart.firstMonth).toFixed(2)}元, 总计月递减: ${(publicPart.monthlyDecrease + commercialPart.monthlyDecrease).toFixed(2)}元`);
+                            console.groupEnd();
+                        }
+
+                        return {
+                            firstMonth: publicPart.firstMonth + commercialPart.firstMonth,
+                            monthlyDecrease: publicPart.monthlyDecrease + commercialPart.monthlyDecrease
+                        };
+                    }
+                };
+
+                // 月供计算
+                const monthlyPayment = computed(() => {
+                    if (optimizedLoanAmount.value <= 0) return 0;
+
+                    if (loanType.value === 'combined') {
+                        if (repaymentMethod.value === 'equalPrincipalInterest') {
+                            return calculateCombinedLoan();
+                        } else {
+                            return calculateCombinedLoan().firstMonth;
+                        }
+                    }
+
+                    const rate = loanType.value === 'commercial' ? commercialRate.value : providentRate.value;
+
+                    if (repaymentMethod.value === 'equalPrincipalInterest') {
+                        return calculateEqualPrincipalInterest(optimizedLoanAmount.value, rate, loanYears.value);
+                    } else {
+                        return calculateEqualPrincipal(optimizedLoanAmount.value, rate, loanYears.value).firstMonth;
+                    }
+                });
+
+                // 每月递减额
+                const monthlyDecrease = computed(() => {
+                    if (repaymentMethod.value === 'equalPrincipalInterest' || optimizedLoanAmount.value <= 0) return 0;
+
+                    if (loanType.value === 'combined') {
+                        return calculateCombinedLoan().monthlyDecrease;
+                    }
+
+                    const rate = loanType.value === 'commercial' ? commercialRate.value : providentRate.value;
+                    return calculateEqualPrincipal(optimizedLoanAmount.value, rate, loanYears.value).monthlyDecrease;
+                });
+
+                // 总利息
+                const totalInterest = computed(() => {
+                    if (optimizedLoanAmount.value <= 0) return 0;
+
+                    if (repaymentMethod.value === 'equalPrincipalInterest') {
+                        return monthlyPayment.value * totalMonths.value - optimizedLoanAmount.value;
+                    } else {
+                        const rate = effectiveRate.value;
+                        const monthlyRate = rate / 100 / 12;
+                        return optimizedLoanAmount.value * monthlyRate * (totalMonths.value + 1) / 2;
+                    }
+                });
+
+                // 总还款额
+                const totalPayment = computed(() => {
+                    return optimizedLoanAmount.value + totalInterest.value;
+                });
+
+                // // 显示年份（控制本金和利息占比的年份）
+                const displayYears = ref(5);
+
+                // 增加显示年份（不超过贷款年限）
+                const increaseDisplayYears = () => {
+                    if (displayYears.value < loanYears.value) {
+                        displayYears.value++;
+                        updateCalculations();
+                    }
+                };
+
+                // 减少显示年份（不低于1年）
+                const decreaseDisplayYears = () => {
+                    if (displayYears.value > 1) {
+                        displayYears.value--;
+                        updateCalculations();
+                    }
+                };
+
+                // 动态计算本金占比（根据displayYears计算）
+                const principalRatioByYears = computed(() => {
+                    if (optimizedLoanAmount.value <= 0) return 0;
+
+                    const totalPrincipal = optimizedLoanAmount.value;
+                    const yearsMonths = Math.min(displayYears.value * 12, totalMonths.value);
+                    const repaymentData = generateRepaymentTable(yearsMonths);
+
+                    if (repaymentData.length === 0) return 0;
+
+                    const totalPrincipalPaid = repaymentData.reduce((sum, item) => sum + item.principal, 0);
+                    return (totalPrincipalPaid / totalPrincipal) * 100;
+                });
+
+                // 动态计算利息占比（根据displayYears计算）
+                const interestRatioByYears = computed(() => {
+                    if (optimizedLoanAmount.value <= 0 || totalInterest.value <= 0) return 0;
+
+                    const yearsMonths = Math.min(displayYears.value * 12, totalMonths.value);
+                    const repaymentData = generateRepaymentTable(yearsMonths);
+
+                    if (repaymentData.length === 0) return 0;
+
+                    const totalInterestPaid = repaymentData.reduce((sum, item) => sum + item.interest, 0);
+                    return (totalInterestPaid / totalInterest.value) * 100;
+                });
+
+                // 为单个贷款部分生成还款明细（保证长度为 monthsCount，principal=0 时返回 0 列表）
+                const generateLoanSchedule = (principalAmount, annualRate, years, monthsCount) => {
+                    const months = Math.min(monthsCount, years * 12);
+                    const result = [];
+                    if (!principalAmount || principalAmount <= 0 || months === 0) {
+                        for (let i = 1; i <= monthsCount; i++) {
+                            result.push({ month: i, monthlyPayment: 0, principal: 0, interest: 0, remainingPrincipal: 0 });
+                        }
+                        return result;
+                    }
+
+                    const monthlyRate = annualRate / 100 / 12;
+
+                    if (repaymentMethod.value === 'equalPrincipalInterest') {
+                        const monthlyPaymentPart = calculateEqualPrincipalInterest(principalAmount, annualRate, years);
+                        let remaining = principalAmount;
+                        for (let i = 1; i <= monthsCount; i++) {
+                            if (i <= months) {
+                                const interest = remaining * monthlyRate;
+                                const principal = monthlyPaymentPart - interest;
+                                remaining -= principal;
+                                result.push({ month: i, monthlyPayment: monthlyPaymentPart, principal, interest, remainingPrincipal: Math.max(remaining, 0) });
+                            } else {
+                                result.push({ month: i, monthlyPayment: 0, principal: 0, interest: 0, remainingPrincipal: 0 });
+                            }
+                        }
+                    } else {
+                        const principalPerMonth = principalAmount / (years * 12);
+                        let remaining = principalAmount;
+                        for (let i = 1; i <= monthsCount; i++) {
+                            if (i <= months) {
+                                const interest = remaining * monthlyRate;
+                                const payment = principalPerMonth + interest;
+                                remaining -= principalPerMonth;
+                                result.push({ month: i, monthlyPayment: payment, principal: principalPerMonth, interest, remainingPrincipal: Math.max(remaining, 0) });
+                            } else {
+                                result.push({ month: i, monthlyPayment: 0, principal: 0, interest: 0, remainingPrincipal: 0 });
+                            }
+                        }
+                    }
+
+                    return result;
+                };
+
+                // 生成还款明细（支持组合贷：分别计算公积金和商贷再合并）
+                const generateRepaymentTable = (monthsCount) => {
+                    const table = [];
+                    if (optimizedLoanAmount.value <= 0) return table;
+
+                    // 当为组合贷时，分别生成两部分并合并
+                    if (loanType.value === 'combined') {
+                        const months = Math.min(monthsCount, totalMonths.value);
+                        const commAmount = Number(commercialAllocatedAmount.value) || 0;
+                        const provAmount = Number(providentAllocatedAmount.value) || 0;
+
+                        const commSchedule = generateLoanSchedule(commAmount, commercialRate.value, loanYears.value, monthsCount);
+                        const provSchedule = generateLoanSchedule(provAmount, providentRate.value, loanYears.value, monthsCount);
+
+                        for (let i = 0; i < monthsCount; i++) {
+                            const c = commSchedule[i] || { monthlyPayment: 0, principal: 0, interest: 0, remainingPrincipal: 0 };
+                            const p = provSchedule[i] || { monthlyPayment: 0, principal: 0, interest: 0, remainingPrincipal: 0 };
+                            table.push({
+                                month: i + 1,
+                                monthlyPayment: (c.monthlyPayment || 0) + (p.monthlyPayment || 0),
+                                principal: (c.principal || 0) + (p.principal || 0),
+                                interest: (c.interest || 0) + (p.interest || 0),
+                                remainingPrincipal: (c.remainingPrincipal || 0) + (p.remainingPrincipal || 0)
+                            });
+                        }
+
+                        return table;
+                    }
+
+                    // 非组合贷按现有方式（单一贷款）生成
+                    const months = Math.min(monthsCount, totalMonths.value);
+                    let remainingPrincipal = optimizedLoanAmount.value;
+                    const monthlyRate = effectiveRate.value / 100 / 12;
+
+                    for (let i = 1; i <= months; i++) {
+                        if (repaymentMethod.value === 'equalPrincipalInterest') {
+                            const interest = remainingPrincipal * monthlyRate;
+                            const principal = monthlyPayment.value - interest;
+                            remainingPrincipal -= principal;
+
+                            table.push({
+                                month: i,
+                                monthlyPayment: monthlyPayment.value,
+                                principal,
+                                interest,
+                                remainingPrincipal: Math.max(remainingPrincipal, 0)
+                            });
+                        } else {
+                            const principalPerMonth = optimizedLoanAmount.value / totalMonths.value;
+                            const interest = remainingPrincipal * monthlyRate;
+                            const currentMonthlyPayment = principalPerMonth + interest;
+                            remainingPrincipal -= principalPerMonth;
+
+                            table.push({
+                                month: i,
+                                monthlyPayment: currentMonthlyPayment,
+                                principal: principalPerMonth,
+                                interest,
+                                remainingPrincipal: Math.max(remainingPrincipal, 0)
+                            });
+                        }
+                    }
+                    return table;
+                };
+
+                // 分配查看期数（仅组合贷时使用）
+                const allocationPeriod = ref(1);
+                const allocationMode = ref('single'); // 'single' or 'cumulative'
+
+                const commercialMonthData = computed(() => {
+                    if (loanType.value !== 'combined') return { monthlyPayment: 0, principal: 0, interest: 0 };
+                    const months = totalMonths.value || 0;
+                    const idx = Math.min(Math.max(Math.floor(allocationPeriod.value), 1), months);
+                    const commAmount = Number(commercialAllocatedAmount.value) || 0;
+                    const commSchedule = generateLoanSchedule(commAmount, commercialRate.value, loanYears.value, months);
+                    if (allocationMode.value === 'single') {
+                        return commSchedule[idx - 1] || { monthlyPayment: 0, principal: 0, interest: 0 };
+                    } else {
+                        // 累计到所选期：求和月供/本金/利息
+                        const upto = Math.min(idx, commSchedule.length);
+                        let sumPay = 0,
+                            sumPrincipal = 0,
+                            sumInterest = 0;
+                        for (let i = 0; i < upto; i++) {
+                            sumPay += commSchedule[i].monthlyPayment || 0;
+                            sumPrincipal += commSchedule[i].principal || 0;
+                            sumInterest += commSchedule[i].interest || 0;
+                        }
+                        return { monthlyPayment: sumPay, principal: sumPrincipal, interest: sumInterest };
+                    }
+                });
+
+                const providentMonthData = computed(() => {
+                    if (loanType.value !== 'combined') return { monthlyPayment: 0, principal: 0, interest: 0 };
+                    const months = totalMonths.value || 0;
+                    const idx = Math.min(Math.max(Math.floor(allocationPeriod.value), 1), months);
+                    const provAmount = Number(providentAllocatedAmount.value) || 0;
+                    const provSchedule = generateLoanSchedule(provAmount, providentRate.value, loanYears.value, months);
+                    if (allocationMode.value === 'single') {
+                        return provSchedule[idx - 1] || { monthlyPayment: 0, principal: 0, interest: 0 };
+                    } else {
+                        const upto = Math.min(idx, provSchedule.length);
+                        let sumPay = 0,
+                            sumPrincipal = 0,
+                            sumInterest = 0;
+                        for (let i = 0; i < upto; i++) {
+                            sumPay += provSchedule[i].monthlyPayment || 0;
+                            sumPrincipal += provSchedule[i].principal || 0;
+                            sumInterest += provSchedule[i].interest || 0;
+                        }
+                        return { monthlyPayment: sumPay, principal: sumPrincipal, interest: sumInterest };
+                    }
+                });
+
+                // 还款明细表格
+                const repaymentTable = computed(() => {
+                    // return generateRepaymentTable(displayPeriod.value);
+                    return generateRepaymentTable(12);
+                });
+
+                // 详细还款明细表格
+                const detailedRepaymentTable = computed(() => {
+                    return generateRepaymentTable(Math.min(modalPeriod.value, totalMonths.value));
+                });
+
+                // 格式化金额
+                const formatCurrency = (value) => {
+                    if (isNaN(value) || value === null || value === undefined) return '0.00';
+                    return value.toLocaleString('zh-CN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                };
+
+                // 更新计算
+                const updateCalculations = () => {
+                    if (housePrice.value < 0) housePrice.value = 0;
+                    if (downPaymentPercent.value < 0) downPaymentPercent.value = 0;
+                    if (downPaymentPercent.value > 100) downPaymentPercent.value = 100;
+
+                    // 确保 allocationPeriod 在有效范围内（仅对组合贷生效）
+                    if (loanType.value === 'combined') {
+                        if (!allocationPeriod.value || allocationPeriod.value < 1) allocationPeriod.value = 1;
+                        if (allocationPeriod.value > totalMonths.value) allocationPeriod.value = totalMonths.value || 1;
+                    } else {
+                        allocationPeriod.value = 1;
+                    }
+
+                    updateChart();
+                };
+
+                // 更新图表
+                const updateChart = () => {
+                    if (!chartInstance) {
+                        chartInstance = echarts.init(document.getElementById('loan-chart'));
+                    }
+
+                    if (optimizedLoanAmount.value <= 0) {
+                        chartInstance.setOption({
+                            title: {
+                                text: '请输入有效的贷款金额',
+                                left: 'center',
+                                top: 'center',
+                                textStyle: {
+                                    color: '#999',
+                                    fontSize: 16
+                                }
+                            }
+                        });
+                        return;
+                    }
+
+                    // 使用已生成的还款表（前12期）作为图表数据源，保证组合贷按部分合并
+                    const dataRows = repaymentTable.value || [];
+                    const months = dataRows.map(r => r.month);
+                    const monthlyPayments = dataRows.map(r => r.monthlyPayment || 0);
+                    const principals = dataRows.map(r => r.principal || 0);
+                    const interests = dataRows.map(r => r.interest || 0);
+
+                    const option = {
+                        tooltip: {
+                            trigger: 'axis',
+                            formatter: function (params) {
+                                let result = params[0].name + '<br/>';
+                                params.forEach(param => {
+                                    result += `${param.seriesName}: ${formatCurrency(param.value)}<br/>`;
+                                });
+                                return result;
+                            }
+                        },
+                        legend: {
+                            data: ['月供', '本金', '利息'],
+                            top: 10
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            top: '60px',
+                            containLabel: true
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: months.map(m => `第${m}期`),
+                            axisLabel: {
+                                rotate: 45
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            axisLabel: {
+                                formatter: function (value) {
+                                    if (value >= 10000) {
+                                        return (value / 10000).toFixed(1) + '万';
+                                    }
+                                    return value;
+                                }
+                            }
+                        },
+                        series: [{
+                            name: '月供',
+                            type: 'line',
+                            data: monthlyPayments,
+                            itemStyle: { color: '#3498db' },
+                            lineStyle: { width: 3 },
+                            smooth: true
+                        },
+                        {
+                            name: '本金',
+                            type: 'bar',
+                            data: principals,
+                            itemStyle: { color: '#2ecc71' },
+                            barWidth: '20%'
+                        },
+                        {
+                            name: '利息',
+                            type: 'bar',
+                            data: interests,
+                            itemStyle: { color: '#e74c3c' },
+                            barWidth: '20%',
+                            barGap: '10%'
+                        }
+                        ]
+                    };
+
+                    chartInstance.setOption(option, true);
+                };
+
+                // 导出主表格
+                const exportMainTable = async (format) => {
+                    await exportTable(format, repaymentTable.value, '还款明细');
+                };
+
+                // 导出模态框表格
+                const exportModalTable = async (format) => {
+                    await exportTable(format, detailedRepaymentTable.value, '详细还款明细');
+                };
+
+                // 通用导出函数
+                const exportTable = async (format, data, title) => {
+                    if (!data || data.length === 0) {
+                        alert('没有可导出的数据');
+                        return;
+                    }
+
+                    const exportData = data.map(item => ({
+                        '期数': `第${item.month}期`,
+                        '月供(元)': item.monthlyPayment,
+                        '本金(元)': item.principal,
+                        '利息(元)': item.interest,
+                        '剩余本金(元)': item.remainingPrincipal
+                    }));
+
+                    // 添加汇总信息
+                    const summary = {
+                        '期数': '汇总',
+                        '月供(元)': data.reduce((sum, item) => sum + item.monthlyPayment, 0),
+                        '本金(元)': data.reduce((sum, item) => sum + item.principal, 0),
+                        '利息(元)': data.reduce((sum, item) => sum + item.interest, 0),
+                        '剩余本金(元)': data[data.length - 1]?.remainingPrincipal || 0
+                    };
+
+                    exportData.push({}, summary);
+
+                    const now = new Date();
+                    const dateStr = now.toISOString().split('T')[0];
+                    const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+
+                    switch (format) {
+                        case 'excel':
+                            exportToExcel(exportData, `${title}_${dateStr}_${timeStr}`);
+                            break;
+                        case 'csv':
+                            exportToCSV(exportData, `${title}_${dateStr}_${timeStr}`);
+                            break;
+                        case 'pdf':
+                            await exportToPDF(exportData, title, dateStr, timeStr);
+                            break;
+                    }
+                };
+
+                // 导出到Excel
+                const exportToExcel = (data, filename) => {
+                    try {
+                        const worksheet = XLSX.utils.json_to_sheet(data);
+                        const workbook = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(workbook, worksheet, "还款明细");
+
+                        // 设置列宽
+                        const wscols = [
+                            { wch: 10 }, // 期数
+                            { wch: 15 }, // 月供
+                            { wch: 15 }, // 本金
+                            { wch: 15 }, // 利息
+                            { wch: 15 }, // 剩余本金
+                        ];
+                        worksheet['!cols'] = wscols;
+
+                        XLSX.writeFile(workbook, `${filename}.xlsx`);
+                        alert('Excel文件导出成功！');
+                    } catch (error) {
+                        console.error('导出Excel失败:', error);
+                        alert('导出Excel失败，请重试');
+                    }
+                };
+
+                // 导出到CSV
+                const exportToCSV = (data, filename) => {
+                    try {
+                        const headers = ['期数', '月供(元)', '本金(元)', '利息(元)', '剩余本金(元)'];
+                        const csvRows = [headers];
+
+                        data.forEach(row => {
+                            const values = [
+                                row['期数'] || '',
+                                row['月供(元)'] || '',
+                                row['本金(元)'] || '',
+                                row['利息(元)'] || '',
+                                row['剩余本金(元)'] || ''
+                            ];
+                            csvRows.push(values.map(v => `"${v}"`).join(','));
+                        });
+
+                        const csvString = csvRows.join('\n');
+                        const blob = new Blob(['\ufeff' + csvString], { type: 'text/csv;charset=utf-8' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${filename}.csv`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+
+                        alert('CSV文件导出成功！');
+                    } catch (error) {
+                        console.error('导出CSV失败:', error);
+                        alert('导出CSV失败，请重试');
+                    }
+                };
+
+                // 导出到PDF
+                const exportToPDF = async (data, title, dateStr, timeStr) => {
+                    try {
+                        const { jsPDF } = window.jspdf;
+                        const doc = new jsPDF();
+
+                        // 添加标题
+                        doc.setFontSize(16);
+                        doc.text(title, 105, 20, { align: 'center' });
+
+                        // 添加导出时间
+                        doc.setFontSize(10);
+                        doc.text(`导出时间: ${dateStr} ${timeStr}`, 105, 30, { align: 'center' });
+
+                        // 添加表格
+                        const headers = [
+                            ['期数', '月供(元)', '本金(元)', '利息(元)', '剩余本金(元)']
+                        ];
+                        const rows = data.map(item => [
+                            item['期数'] || '',
+                            formatCurrency(item['月供(元)'] || 0),
+                            formatCurrency(item['本金(元)'] || 0),
+                            formatCurrency(item['利息(元)'] || 0),
+                            formatCurrency(item['剩余本金(元)'] || 0)
+                        ]);
+
+                        // 设置列宽
+                        const columnStyles = {
+                            0: { cellWidth: 20 },
+                            1: { cellWidth: 30 },
+                            2: { cellWidth: 30 },
+                            3: { cellWidth: 30 },
+                            4: { cellWidth: 30 }
+                        };
+
+                        // 自动分页
+                        doc.autoTable({
+                            head: headers,
+                            body: rows,
+                            startY: 40,
+                            theme: 'grid',
+                            headStyles: { fillColor: [41, 128, 185] },
+                            columnStyles: columnStyles,
+                            margin: { top: 40 }
+                        });
+
+                        // 保存PDF
+                        doc.save(`${title}_${dateStr}_${timeStr}.pdf`);
+                        alert('PDF文件导出成功！');
+                    } catch (error) {
+                        console.error('导出PDF失败:', error);
+                        alert('PDF导出需要额外的服务器支持，已生成简化版PDF');
+                    }
+                };
+
+                // 更新模态框表格
+                const updateModalTable = () => {
+                    if (modalPeriod.value < 1) modalPeriod.value = 1;
+                    if (modalPeriod.value > totalMonths.value) modalPeriod.value = totalMonths.value;
+                };
+
+                // 显示所有期数
+                const showAllPeriods = () => {
+                    modalPeriod.value = totalMonths.value;
+                };
+
+                // 滑块功能
+                const startDrag = (e) => {
+                    e.preventDefault();
+                    isDragging = true;
+                    document.addEventListener('mousemove', handleDrag);
+                    document.addEventListener('mouseup', stopDrag);
+                    document.addEventListener('touchmove', handleDrag);
+                    document.addEventListener('touchend', stopDrag);
+                };
+
+                const handleDrag = (e) => {
+                    if (!isDragging || !sliderTrack.value) return;
+
+                    const rect = sliderTrack.value.getBoundingClientRect();
+                    const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                    let percent = ((clientX - rect.left) / rect.width) * 100;
+                    percent = Math.max(0, Math.min(100, percent));
+                    downPaymentPercent.value = Math.round(percent);
+                    updateCalculations();
+                };
+
+                const stopDrag = () => {
+                    isDragging = false;
+                    document.removeEventListener('mousemove', handleDrag);
+                    document.removeEventListener('mouseup', stopDrag);
+                    document.removeEventListener('touchmove', handleDrag);
+                    document.removeEventListener('touchend', stopDrag);
+                };
+
+                const updateSliderPosition = (e) => {
+                    if (sliderTrack.value) {
+                        const rect = sliderTrack.value.getBoundingClientRect();
+                        const percent = ((e.clientX - rect.left) / rect.width) * 100;
+                        downPaymentPercent.value = Math.max(0, Math.min(100, Math.round(percent)));
+                        updateCalculations();
+                    }
+                };
+
+                // 初始化
+                onMounted(() => {
+                    updateCalculations();
+
+                    window.addEventListener('resize', () => {
+                        if (chartInstance) {
+                            chartInstance.resize();
+                        }
+                    });
+                });
+
+                return {
+                    housePrice,
+                    downPaymentPercent,
+                    loanYears,
+                    loanType,
+                    increaseYear,
+                    decreaseYear,
+                    commercialRate,
+                    providentRate,
+                    displayYears, //控制本息占比年限
+                    principalRatioByYears,
+                    interestRatioByYears,
+                    increaseDisplayYears,
+                    decreaseDisplayYears,
+                    repaymentMethod,
+                    showDetailedModal,
+                    modalPeriod,
+                    // displayPeriod,
+                    commercialRates,
+                    providentRates,
+                    downPaymentAmount,
+                    originalLoanAmount,
+                    optimizedLoanAmount,
+                    loanAdjustment,
+                    optimizedDownPayment,
+                    showOptimization,
+                    totalMonths,
+                    monthlyPayment,
+                    monthlyDecrease,
+                    totalInterest,
+                    totalPayment,
+                    repaymentTable,
+                    detailedRepaymentTable,
+                    formatCurrency,
+                    updateCalculations,
+                    exportMainTable,
+                    exportModalTable,
+                    updateModalTable,
+                    showAllPeriods,
+                    sliderTrack,
+                    startDrag,
+                    updateSliderPosition,
+                    combinedCommercialPart,
+                    providentAllocatedAmount,
+                    commercialAllocatedAmount,
+                    allocationPeriod,
+                    commercialMonthData,
+                    providentMonthData,
+                    allocationMode
+                };
+            }
+        }).mount('#app');
+    </script>
+    <script>
+// 在游戏界面右下角添加浮动切换按钮
+document.addEventListener('DOMContentLoaded', function() {
+  // 创建浮动按钮容器
+  const floatContainer = document.createElement('div');
+  floatContainer.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  `;
+  
+  // 创建返回主页按钮
+  const homeBtn = document.createElement('a');
+  homeBtn.href = '/';
+  homeBtn.innerHTML = '🏠';
+  homeBtn.title = '返回主页';
+  homeBtn.style.cssText = `
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    color: white;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+  `;
+  homeBtn.onmouseover = () => {
+    homeBtn.style.transform = 'scale(1.1)';
+    homeBtn.style.boxShadow = '0 6px 12px rgba(59, 130, 246, 0.5)';
+  };
+  homeBtn.onmouseout = () => {
+    homeBtn.style.transform = 'scale(1)';
+    homeBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+  };
+  
+  // 创建切换到华容道按钮
+  const switchBtn = document.createElement('a');
+  switchBtn.href = '/klotski-v3';
+  switchBtn.innerHTML = '🧩';
+  switchBtn.title = '玩数字华容道';
+  switchBtn.style.cssText = `
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: white;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+  `;
+  switchBtn.onmouseover = () => {
+    switchBtn.style.transform = 'scale(1.1)';
+    switchBtn.style.boxShadow = '0 6px 12px rgba(16, 185, 129, 0.5)';
+  };
+  switchBtn.onmouseout = () => {
+    switchBtn.style.transform = 'scale(1)';
+    switchBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+  };
+  
+  // 添加到页面
+  floatContainer.appendChild(homeBtn);
+  floatContainer.appendChild(switchBtn);
+  document.body.appendChild(floatContainer);
+  
+  // 可调整z-index避免被覆盖
+  const gameHeader = document.querySelector('.game-header, .header, .sudoku-header');
+  if (gameHeader) {
+    const zIndex = parseInt(window.getComputedStyle(gameHeader).zIndex);
+    if (zIndex > 1000) {
+      document.getElementById('game-nav').style.zIndex = (zIndex + 100).toString();
+      floatContainer.style.zIndex = (zIndex + 100).toString();
+    }
+  }
+});
+</script>
+     <div class="footer">
+            <p>k © 2026 | 基于Vue.js开发 | 数据存储于浏览器本地</p>
+</body>
+
+</html>

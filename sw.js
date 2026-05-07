@@ -3,9 +3,23 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/klotski-v3.html',
-  '/sudoku.html',  // 注意：如果文件名是中文，这里可能会出问题，建议用英文
+  '/sudoku.html',
+  'loanCalculator.html',
   '/manifest.json'
 ];
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+     Promise.all(
+      keys
+       .filter((key) => key !== CACHE_NAME)
+       .map((key) => caches.delete(key))
+     )
+    )
+  );
+  self.clients.claim();
+});
 
 self.addEventListener('install', event => {
   event.waitUntil(

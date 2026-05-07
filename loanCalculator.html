@@ -992,46 +992,65 @@
         }
 
         .footer {
-        margin-top: 30px;
-        text-align: center;
-        font-size: 12px;
-        color: #64748b;
-        padding: 20px 0 10px;
-        border-top: 1px solid rgba(100, 116, 139, 0.3);
-    }
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #64748b;
+            padding: 20px 0 10px;
+            border-top: 1px solid rgba(100, 116, 139, 0.3);
+        }
 
-    .footer a {
-        color: #7dd3fc;
-        text-decoration: none;
-    }
+        .footer a {
+            color: #7dd3fc;
+            text-decoration: none;
+        }
 
-    .footer a:hover {
-        text-decoration: underline;
-    }
+        .footer a:hover {
+            text-decoration: underline;
+        }
 
         /* 响应式设计 */
         @media (max-width: 768px) {
+
+            /* 手机端使用单列布局，输入面板和结果面板纵向排列 */
             .main-content {
-                grid-template-columns: repeat(2, 1fr);
-                /* 手机端回到2列 */
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 12px;
+            }
+
+            /* 在小屏移除固定最小高度，允许内容根据需要伸展并页面滚动 */
+            .main-content {
+                min-height: auto;
+                gap: 12px;
+            }
+
+            /* 取消大容器的 overflow:hidden，避免截断堆叠内容 */
+            .loan-calculator {
+                overflow: visible;
+            }
+
+            /* 在堆叠模式下改为底部边框以区分上下区域 */
+            .input-panel {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
             }
 
             .header {
                 flex-direction: column;
-                gap: 20px;
+                gap: 16px;
                 text-align: center;
             }
 
-            .summary-cards {
+            .summary-cards,
+            .amount-cards {
                 grid-template-columns: 1fr;
             }
 
             .loan-term,
             .loan-type {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .amount-cards {
                 grid-template-columns: 1fr;
             }
 
@@ -1041,7 +1060,7 @@
 
             .modal-controls {
                 flex-direction: column;
-                gap: 15px;
+                gap: 12px;
                 align-items: stretch;
             }
 
@@ -1055,32 +1074,93 @@
             }
 
             .summary-card {
-                padding: 10px 6px;
-                min-height: 100px;
+                padding: 10px 8px;
             }
 
             .card-label {
-                font-size: 10px;
-            }
-
-            .card-value {
-                font-size: 16px;
-            }
-
-            .year-btn {
-                width: 22px;
-                height: 22px;
                 font-size: 12px;
             }
 
-            .years-display {
-                font-size: 11px;
-                min-width: 35px;
+            .card-value {
+                font-size: 18px;
             }
 
+            .year-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 13px;
+            }
+
+            .years-display {
+                font-size: 12px;
+                min-width: 40px;
+            }
+
+            /* 更友好的触控目标 */
+            .view-more-btn,
+            .export-btn,
+            .modal-export-btn,
+            .period-btn {
+                padding: 14px 18px;
+                font-size: 15px;
+            }
+
+            /* 让自定义滑块在触屏设备上更易操作 */
+            .slider-thumb {
+                width: 36px;
+                height: 36px;
+                transform: translate(-50%, -50%);
+                border-width: 4px;
+            }
+
+            /* 价格输入的前缀在窄屏适配 */
+            .price-input .prefix {
+                left: 12px;
+                font-size: 18px;
+            }
+
+            .price-input input {
+                padding-left: 44px;
+                font-size: 18px;
+            }
+
+            /* 让表格在手机端可横向滚动以避免压缩列 */
+            .repayment-table {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .table-header,
+            .table-row {
+                min-width: 640px;
+            }
         }
 
         @media (max-width: 480px) {
+
+            /* 在超小屏强制主内容单列，避免内容被压缩且无法横向滑动 */
+            /* 强制堆叠：切换为块布局并确保子面板宽度为 100% */
+            .main-content {
+                display: block;
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+
+            .input-panel,
+            .result-panel {
+                display: block;
+                width: 100%;
+                box-sizing: border-box;
+                border-right: none;
+                /* 确保没有右边框 */
+            }
+
+            /* 容器在小屏下占满可用宽度，避免被居中留白导致右侧内容不可见 */
+            .container {
+                max-width: 100%;
+                padding: 8px;
+            }
+
             .header h1 {
                 font-size: 22px;
             }
@@ -1106,8 +1186,25 @@
             .table-header,
             .table-row {
                 grid-template-columns: 0.6fr 1fr 1fr 1fr 1fr;
-                padding: 10px 15px;
-                font-size: 13px;
+                padding: 10px 12px;
+                font-size: 12px;
+            }
+
+            /* 更小屏时进一步减小前缀内边距 */
+            .price-input .prefix {
+                left: 10px;
+                font-size: 16px;
+            }
+
+            .price-input input {
+                padding-left: 38px;
+                font-size: 16px;
+            }
+
+            /* 滑块触控优化 */
+            .slider-thumb {
+                width: 32px;
+                height: 32px;
             }
         }
     </style>
@@ -1429,7 +1526,6 @@
                     <div class="repayment-details">
                         <div class="details-header">
                             <h3 class="section-title" style="border-bottom: none; padding-bottom: 0; margin: 0;">
-                                <!-- <i class="fas fa-list-alt"></i> 还款明细（前{{ displayPeriod }}期） -->
                                 <i class="fas fa-list-alt"></i> 还款明细（前12期）
                             </h3>
                             <div class="export-buttons">
@@ -2418,95 +2514,8 @@
             }
         }).mount('#app');
     </script>
-    <script>
-// 在游戏界面右下角添加浮动切换按钮
-document.addEventListener('DOMContentLoaded', function() {
-  // 创建浮动按钮容器
-  const floatContainer = document.createElement('div');
-  floatContainer.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  `;
-  
-  // 创建返回主页按钮
-  const homeBtn = document.createElement('a');
-  homeBtn.href = '/';
-  homeBtn.innerHTML = '🏠';
-  homeBtn.title = '返回主页';
-  homeBtn.style.cssText = `
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
-    color: white;
-    border-radius: 50%;
-    text-decoration: none;
-    font-size: 18px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s;
-  `;
-  homeBtn.onmouseover = () => {
-    homeBtn.style.transform = 'scale(1.1)';
-    homeBtn.style.boxShadow = '0 6px 12px rgba(59, 130, 246, 0.5)';
-  };
-  homeBtn.onmouseout = () => {
-    homeBtn.style.transform = 'scale(1)';
-    homeBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
-  };
-  
-  // 创建切换到华容道按钮
-  const switchBtn = document.createElement('a');
-  switchBtn.href = '/klotski-v3';
-  switchBtn.innerHTML = '🧩';
-  switchBtn.title = '玩数字华容道';
-  switchBtn.style.cssText = `
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-    color: white;
-    border-radius: 50%;
-    text-decoration: none;
-    font-size: 18px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s;
-  `;
-  switchBtn.onmouseover = () => {
-    switchBtn.style.transform = 'scale(1.1)';
-    switchBtn.style.boxShadow = '0 6px 12px rgba(16, 185, 129, 0.5)';
-  };
-  switchBtn.onmouseout = () => {
-    switchBtn.style.transform = 'scale(1)';
-    switchBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
-  };
-  
-  // 添加到页面
-  floatContainer.appendChild(homeBtn);
-  floatContainer.appendChild(switchBtn);
-  document.body.appendChild(floatContainer);
-  
-  // 可调整z-index避免被覆盖
-  const gameHeader = document.querySelector('.game-header, .header, .sudoku-header');
-  if (gameHeader) {
-    const zIndex = parseInt(window.getComputedStyle(gameHeader).zIndex);
-    if (zIndex > 1000) {
-      document.getElementById('game-nav').style.zIndex = (zIndex + 100).toString();
-      floatContainer.style.zIndex = (zIndex + 100).toString();
-    }
-  }
-});
-</script>
-     <div class="footer">
-            <p>k © 2026 | 基于Vue.js开发 | 数据存储于浏览器本地</p>
+    <div class="footer">
+        <p>k © 2026 | 基于Vue.js开发 | 数据存储于浏览器本地</p>
 </body>
 
 </html>

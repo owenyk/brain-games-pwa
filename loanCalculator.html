@@ -2665,6 +2665,94 @@
     </script>
     <div class="footer">
         <p>k © 2026 | 基于Vue.js开发 | 数据存储于浏览器本地</p>
+
+    <script>
+// 在游戏界面右下角添加浮动切换按钮
+document.addEventListener('DOMContentLoaded', function() {
+  // 创建浮动按钮容器
+  const floatContainer = document.createElement('div');
+  floatContainer.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  `;
+  
+  // 创建返回主页按钮
+  const homeBtn = document.createElement('a');
+  homeBtn.href = '/';
+  homeBtn.innerHTML = '🏠';
+  homeBtn.title = '返回主页';
+  homeBtn.style.cssText = `
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    color: white;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+  `;
+  homeBtn.onmouseover = () => {
+    homeBtn.style.transform = 'scale(1.1)';
+    homeBtn.style.boxShadow = '0 6px 12px rgba(59, 130, 246, 0.5)';
+  };
+  homeBtn.onmouseout = () => {
+    homeBtn.style.transform = 'scale(1)';
+    homeBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+  };
+  
+  // 创建切换到华容道按钮
+  const switchBtn = document.createElement('a');
+  switchBtn.href = '/klotski-v3';
+  switchBtn.innerHTML = '🧩';
+  switchBtn.title = '玩数字华容道';
+  switchBtn.style.cssText = `
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: white;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+  `;
+  switchBtn.onmouseover = () => {
+    switchBtn.style.transform = 'scale(1.1)';
+    switchBtn.style.boxShadow = '0 6px 12px rgba(16, 185, 129, 0.5)';
+  };
+  switchBtn.onmouseout = () => {
+    switchBtn.style.transform = 'scale(1)';
+    switchBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+  };
+  
+  // 添加到页面
+  floatContainer.appendChild(homeBtn);
+  floatContainer.appendChild(switchBtn);
+  document.body.appendChild(floatContainer);
+  
+  // 可调整z-index避免被覆盖
+  const gameHeader = document.querySelector('.game-header, .header, .sudoku-header');
+  if (gameHeader) {
+    const zIndex = parseInt(window.getComputedStyle(gameHeader).zIndex);
+    if (zIndex > 1000) {
+      document.getElementById('game-nav').style.zIndex = (zIndex + 100).toString();
+      floatContainer.style.zIndex = (zIndex + 100).toString();
+    }
+  }
+});
+</script>
 </body>
 
 </html>

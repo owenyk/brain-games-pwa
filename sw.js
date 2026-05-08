@@ -1,10 +1,10 @@
-const CACHE_NAME = 'brain-games-v8';
+const CACHE_NAME = 'brain-games-v9';
 const urlsToCache = [
   '/',
   '/index.html',
   '/klotski-v3.html',
   '/sudoku.html',
-  'loanCalculator.html',
+  '/loanCalculator.html',
   '/manifest.json'
 ];
 

@@ -1880,7 +1880,6 @@
                 });
 
                 // 等额本息计算公式
-                // 等额本息计算公式
                 // 返回每月还款金额（数字）。
                 // principal: 本金（数字），annualRate: 年利率（百分比），years: 年数
                 const calculateEqualPrincipalInterest = (principal, annualRate, years) => {
@@ -2706,7 +2705,7 @@
                         doc.setFont(fontConfig.currentFont, fontConfig.fontStyle);
 
                         // 3. 添加标题与导出时间（支持多行换行并自动缩放）
-                        const titleStartY = 12; // 减少顶部留白
+                        const titleStartY = 10; // 减少顶部留白
                         const maxTitleWidth = TABLE_WIDTH;
 
                         // Helper: 将字符串拆成多行以适应最大宽度，优先按空格拆分
@@ -2760,7 +2759,7 @@
                         let cursorY = titleStartY;
                         titleLines.forEach(line => {
                             doc.text(line, PAGE_WIDTH / 2, cursorY, { align: 'center' });
-                            cursorY += titleFontSize + 2;
+                            cursorY += titleFontSize;
                         });
 
                         // Date label
@@ -2776,7 +2775,7 @@
                         const dateLines = splitTextToLines(dateLabel, maxTitleWidth, dateFontSize);
                         dateLines.forEach(line => {
                             doc.text(line, PAGE_WIDTH / 2, cursorY, { align: 'center' });
-                            cursorY += dateFontSize + 2;
+                            cursorY += dateFontSize - 2;
                         });
 
                         // 最终表格起始 Y 基于绘制的行数自动计算
@@ -2810,11 +2809,11 @@
                         ]);
 
                         // 6. 创建表格
-                        const tableStartY = dateY + 8; // 紧凑布局，减少顶部空白
-                        const bottomMargin = 20; // 底部保留空间，避免覆盖数据
+                        const tableStartY = dateY - 2; // 紧凑布局，减少顶部空白
+                        const bottomMargin = 16; // 底部保留空间，避免覆盖数据
                         const desiredRowsPerPage = 24;
                         // 计算简单表格行高以尽量满足每页 24 行
-                        const simpleRowHeight = Math.max(8, Math.floor((PAGE_HEIGHT - tableStartY - bottomMargin - 15) / desiredRowsPerPage));
+                        const simpleRowHeight = Math.max(2, Math.floor((PAGE_HEIGHT - tableStartY - bottomMargin - 15) / desiredRowsPerPage));
 
                         if (hasAutoTable) {
                             // 使用 autoTable 插件（createAutoTable 已做兼容处理）

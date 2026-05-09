@@ -12,7 +12,11 @@
     <!-- SheetJS for Excel export -->
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <!-- jsPDF for PDF export -->
-    <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <!-- <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script> -->
+    <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/jspdf-autotable@5.0.7/dist/jspdf.plugin.autotable.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script> -->
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet"> -->
     <!-- html2canvas for PDF export -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -595,7 +599,7 @@
             cursor: pointer;
         }
 
-        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button {
             opacity: 1;
         }
@@ -1566,7 +1570,6 @@
                         <i class="fas fa-chart-pie"></i> 计算结果
                         <i style="margin-left:auto; font-size:11px; color:#718096">仅供参考，以实际为主</i>
                     </h2>
-
                     <!-- 摘要卡片 -->
                     <!-- 摘要卡片部分 -->
                     <div class="summary-cards">
@@ -1877,6 +1880,9 @@
                 });
 
                 // 等额本息计算公式
+                // 等额本息计算公式
+                // 返回每月还款金额（数字）。
+                // principal: 本金（数字），annualRate: 年利率（百分比），years: 年数
                 const calculateEqualPrincipalInterest = (principal, annualRate, years) => {
                     const monthlyRate = annualRate / 100 / 12;
                     const months = years * 12;
@@ -1891,6 +1897,8 @@
                 };
 
                 // 等额本金计算公式
+                // 返回对象 { firstMonth, monthlyDecrease }
+                // firstMonth: 首月还款金额，monthlyDecrease: 每月递减额
                 const calculateEqualPrincipal = (principal, annualRate, years) => {
                     const monthlyRate = annualRate / 100 / 12;
                     const months = years * 12;
@@ -1931,8 +1939,8 @@
 
                 // 全局配置对象
                 const AppConfig = {
-                    debug: true,  // 调试开关，发布时可设置为 false
-                    logLevel: 'detail'  // 日志级别：'none' | 'basic' | 'detail'
+                    debug: true, // 调试开关，发布时可设置为 false
+                    logLevel: 'detail' // 日志级别：'none' | 'basic' | 'detail'
                 };
 
                 const calculateCombinedLoan = () => {
@@ -2096,6 +2104,8 @@
                 });
 
                 // 为单个贷款部分生成还款明细（保证长度为 monthsCount，principal=0 时返回 0 列表）
+                // 生成单笔贷款的还款计划（支持等额本息/等额本金），返回长度为 monthsCount 的数组
+                // 每项包含 { month, monthlyPayment, principal, interest, remainingPrincipal }
                 const generateLoanSchedule = (principalAmount, annualRate, years, monthsCount) => {
                     const months = Math.min(monthsCount, years * 12);
                     const result = [];
@@ -2140,6 +2150,8 @@
                 };
 
                 // 生成还款明细（支持组合贷：分别计算公积金和商贷再合并）
+                // 根据当前贷款类型与参数生成合并的还款明细表
+                // monthsCount: 要生成的期数（可以大于贷款期数以填充0行）
                 const generateRepaymentTable = (monthsCount) => {
                     const table = [];
                     if (optimizedLoanAmount.value <= 0) return table;
@@ -2265,9 +2277,10 @@
                 });
 
                 // 格式化金额
+                // 将数字格式化为千位分隔并保留两位小数，非数字返回 '0.00'
                 const formatCurrency = (value) => {
                     if (isNaN(value) || value === null || value === undefined) return '0.00';
-                    return value.toLocaleString('zh-CN', {
+                    return Number(value).toLocaleString('zh-CN', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     });
@@ -2404,40 +2417,51 @@
                         return;
                     }
 
+                    // 转换为导出格式（保留原始数值，导出时再格式化）
                     const exportData = data.map(item => ({
-                        '期数': `第${item.month}期`,
-                        '月供(元)': item.monthlyPayment,
-                        '本金(元)': item.principal,
-                        '利息(元)': item.interest,
-                        '剩余本金(元)': item.remainingPrincipal
+                        '期数': item.month ? `第${item.month}期` : '',
+                        '月供(元)': item.monthlyPayment ?? '',
+                        '本金(元)': item.principal ?? '',
+                        '利息(元)': item.interest ?? '',
+                        '剩余本金(元)': item.remainingPrincipal ?? ''
                     }));
 
-                    // 添加汇总信息
+                    // 计算汇总（一次遍历，避免多次 reduce）
+                    const totals = data.reduce((acc, item) => {
+                        acc.payment += Number(item.monthlyPayment) || 0;
+                        acc.principal += Number(item.principal) || 0;
+                        acc.interest += Number(item.interest) || 0;
+                        return acc;
+                    }, { payment: 0, principal: 0, interest: 0 });
+
                     const summary = {
                         '期数': '汇总',
-                        '月供(元)': data.reduce((sum, item) => sum + item.monthlyPayment, 0),
-                        '本金(元)': data.reduce((sum, item) => sum + item.principal, 0),
-                        '利息(元)': data.reduce((sum, item) => sum + item.interest, 0),
-                        '剩余本金(元)': data[data.length - 1]?.remainingPrincipal || 0
+                        '月供(元)': totals.payment,
+                        '本金(元)': totals.principal,
+                        '利息(元)': totals.interest,
+                        '剩余本金(元)': data[data.length - 1] ? (data[data.length - 1].remainingPrincipal || 0) : ''
                     };
 
-                    exportData.push({}, summary);
+                    exportData.push(summary);
 
                     const now = new Date();
                     const dateStr = now.toISOString().split('T')[0];
                     const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
 
-                    switch (format) {
-                        case 'excel':
-                            exportToExcel(exportData, `${title}_${dateStr}_${timeStr}`);
-                            break;
-                        case 'csv':
-                            exportToCSV(exportData, `${title}_${dateStr}_${timeStr}`);
-                            break;
-                        case 'pdf':
-                            await exportToPDF(exportData, title, dateStr, timeStr);
-                            break;
-                    }
+                    // 在导出前展示预览，用户确认后再执行导出
+                    showExportPreview(format, exportData, `${title}_${dateStr}_${timeStr}`, async () => {
+                        switch (format) {
+                            case 'excel':
+                                exportToExcel(exportData, `${title}_${dateStr}_${timeStr}`);
+                                break;
+                            case 'csv':
+                                exportToCSV(exportData, `${title}_${dateStr}_${timeStr}`);
+                                break;
+                            case 'pdf':
+                                await exportToPDF(exportData, title, dateStr, timeStr);
+                                break;
+                        }
+                    });
                 };
 
                 // 导出到Excel
@@ -2501,61 +2525,835 @@
                 };
 
                 // 导出到PDF
+                // 预加载的字体（从 CDN 或本地）
+                // 直接用本文件需要文字的base64码，以下辅助函数暂不使用
+                // const NotoSansSCfontUrl = 'NotoSansSC-subset.ttf';
+                // 辅助函数：ArrayBuffer 转 Base64
+                // function arrayBufferToBase64(buffer) {
+                //     let binary = '';
+                //     const bytes = new Uint8Array(buffer);
+                //     for (let i = 0; i < bytes.byteLength; i++) {
+                //         binary += String.fromCharCode(bytes[i]);
+                //     }
+                //     return btoa(binary);
+                // }
+
+                // // 辅助函数：加载字体
+                // async function loadFontAsArrayBuffer(fontUrl) {
+                //     try {
+                //         const response = await fetch(fontUrl);
+                //         if (!response.ok) {
+                //             throw new Error(`字体加载失败: ${response.status} ${response.statusText}`);
+                //         }
+                //         return await response.arrayBuffer();
+                //     } catch (error) {
+                //         console.error('加载字体时出错:', error);
+                //         throw error;
+                //     }
+                // }
+
+
+                // 主导出函数
+                // ---------- 字体加载辅助函数 ----------
+                function arrayBufferToBase64(buffer) {
+                    let binary = '';
+                    const bytes = new Uint8Array(buffer);
+                    const len = bytes.byteLength;
+                    for (let i = 0; i < len; i++) {
+                        binary += String.fromCharCode(bytes[i]);
+                    }
+                    return btoa(binary);
+                }
+
+                async function loadChineseFont(doc) {
+                    // 尝试优雅加载中文字体，失败则返回 false
+                    try {
+                        const isAddFileSupported = (typeof doc.addFileToVFS === 'function');
+                        const isAddFontSupported = (typeof doc.addFont === 'function');
+
+                        // helper: 检查字体是否已注册
+                        function isFontRegistered(family) {
+                            try {
+                                if (typeof doc.getFontList === 'function') {
+                                    const list = doc.getFontList();
+                                    return !!list && !!list[family];
+                                }
+                                // 退回到尝试 setFont 来检测
+                                try {
+                                    doc.setFont(family, 'normal');
+                                    return true;
+                                } catch (e) {
+                                    return false;
+                                }
+                            } catch (e) {
+                                return false;
+                            }
+                        }
+
+                        // 1) 全局 base64 变量（优先）
+                        if (window.NotoSansSC_base64 && isAddFileSupported) {
+                            const filename = 'NotoSansSC-subset.ttf';
+                            try {
+                                doc.addFileToVFS(filename, window.NotoSansSC_base64);
+                                if (isAddFontSupported) {
+                                    try { doc.addFont(filename, 'NotoSansSC', 'normal'); } catch (e) { }
+                                    try { doc.addFont(filename, 'NotoSansSC', 'bold'); } catch (e) { }
+                                }
+                                if (isFontRegistered('NotoSansSC')) return true;
+                            } catch (e) {
+                                // 忽略，转到下一种方式
+                            }
+                        }
+
+                        // 2) 本地相对路径优先尝试子集文件
+                        const tryUrls = [
+                            './NotoSansSC-subset.ttf',
+                            'NotoSansSC-subset.ttf',
+                            './NotoSansSC.ttf',
+                            'NotoSansSC.ttf'
+                        ];
+
+                        for (const url of tryUrls) {
+                            try {
+                                // 首先尝试以强制重新加载获取字体资源（避免服务器返回 304 没有响应体）
+                                let res = null;
+                                try {
+                                    res = await fetch(url, { cache: 'reload' });
+                                } catch (e) {
+                                    // 继续到重试逻辑
+                                }
+
+                                // 有些服务器在条件请求下返回 304（Not Modified）且没有响应体，针对这种情况使用 cache-busting 重试
+                                if (res && res.status === 304) {
+                                    try {
+                                        const sep = url.includes('?') ? '&' : '?';
+                                        res = await fetch(url + sep + '_=' + Date.now(), { cache: 'no-store' });
+                                    } catch (e) {
+                                        // 忽略，后续会判断 res.ok
+                                    }
+                                }
+
+                                if (!res || !res.ok) continue;
+                                const ab = await res.arrayBuffer();
+                                const b64 = arrayBufferToBase64(ab);
+                                const filename = url.replace(/^\.\//, '');
+                                if (isAddFileSupported) {
+                                    try {
+                                        doc.addFileToVFS(filename, b64);
+                                        if (isAddFontSupported) {
+                                            try { doc.addFont(filename, 'NotoSansSC', 'normal'); } catch (e) { }
+                                            try { doc.addFont(filename, 'NotoSansSC', 'bold'); } catch (e) { }
+                                        }
+                                        if (isFontRegistered('NotoSansSC')) return true;
+                                    } catch (e) {
+                                        // 单个文件注册失败，尝试下一个
+                                        continue;
+                                    }
+                                }
+                            } catch (e) {
+                                // 忽略单个 URL 错误
+                                continue;
+                            }
+                        }
+
+                        // 3) 未注册成功，返回 false
+                        return false;
+                    } catch (e) {
+                        console.warn('loadChineseFont 错误:', e);
+                        return false;
+                    }
+                }
+
                 const exportToPDF = async (data, title, dateStr, timeStr) => {
                     try {
+                        if (window._forceNoChineseFont) { fontConfig.chineseLoaded = false; fontConfig.currentFont = 'helvetica'; }
+                        // 验证必要依赖
+                        if (!window.jspdf) {
+                            throw new Error('jsPDF库未加载，请检查依赖');
+                        }
+
                         const { jsPDF } = window.jspdf;
                         const doc = new jsPDF();
+                        // 检测 autoTable 插件：优先检测 doc.autoTable，再退回 window.jspdf.autoTable 或全局 autoTable
+                        const hasAutoTable = (typeof doc.autoTable === 'function') ||
+                            (window.jspdf && typeof window.jspdf.autoTable === 'function') ||
+                            (typeof window.autoTable === 'function') ||
+                            (window.jspdf && window.jspdf.default && typeof window.jspdf.default.autoTable === 'function');
 
-                        // 添加标题
-                        doc.setFontSize(16);
-                        doc.text(title, 105, 20, { align: 'center' });
+                        // 定义常量
+                        const PAGE_WIDTH = doc.internal.pageSize.getWidth();
+                        const PAGE_HEIGHT = doc.internal.pageSize.getHeight();
+                        const LEFT_MARGIN = 20;
+                        const TABLE_WIDTH = PAGE_WIDTH - LEFT_MARGIN * 2;
 
-                        // 添加导出时间
-                        doc.setFontSize(10);
-                        doc.text(`导出时间: ${dateStr} ${timeStr}`, 105, 30, { align: 'center' });
-
-                        // 添加表格
-                        const headers = [
-                            ['期数', '月供(元)', '本金(元)', '利息(元)', '剩余本金(元)']
-                        ];
-                        const rows = data.map(item => [
-                            item['期数'] || '',
-                            formatCurrency(item['月供(元)'] || 0),
-                            formatCurrency(item['本金(元)'] || 0),
-                            formatCurrency(item['利息(元)'] || 0),
-                            formatCurrency(item['剩余本金(元)'] || 0)
-                        ]);
-
-                        // 设置列宽
-                        const columnStyles = {
-                            0: { cellWidth: 20 },
-                            1: { cellWidth: 30 },
-                            2: { cellWidth: 30 },
-                            3: { cellWidth: 30 },
-                            4: { cellWidth: 30 }
+                        // 1. 初始化字体
+                        let fontConfig = {
+                            chineseLoaded: false,
+                            currentFont: 'helvetica',
+                            fontStyle: 'normal'
                         };
 
-                        // 自动分页
-                        doc.autoTable({
-                            head: headers,
-                            body: rows,
-                            startY: 40,
-                            theme: 'grid',
-                            headStyles: { fillColor: [41, 128, 185] },
-                            columnStyles: columnStyles,
-                            margin: { top: 40 }
+                        // 2. 尝试加载中文字体
+                        await loadChineseFont(doc).then(success => {
+                            fontConfig.chineseLoaded = success;
+                            fontConfig.currentFont = success ? 'NotoSansSC' : 'helvetica';
+                        }).catch(() => {
+                            fontConfig.chineseLoaded = false;
+                            fontConfig.currentFont = 'helvetica';
                         });
 
-                        // 保存PDF
-                        doc.save(`${title}_${dateStr}_${timeStr}.pdf`);
-                        alert('PDF文件导出成功！');
+                        // 设置默认字体
+                        doc.setFont(fontConfig.currentFont, fontConfig.fontStyle);
+
+                        // 3. 添加标题与导出时间（支持多行换行并自动缩放）
+                        const titleStartY = 12; // 减少顶部留白
+                        const maxTitleWidth = TABLE_WIDTH;
+
+                        // Helper: 将字符串拆成多行以适应最大宽度，优先按空格拆分
+                        function splitTextToLines(text, maxWidth, initialFontSize) {
+                            const lines = [];
+                            const words = String(text).split(/\s+/);
+                            let currentLine = '';
+                            for (let i = 0; i < words.length; i++) {
+                                const word = words[i];
+                                const testLine = currentLine ? (currentLine + ' ' + word) : word;
+                                if (typeof doc.getTextWidth === 'function' && doc.getTextWidth(testLine) > maxWidth) {
+                                    if (currentLine) {
+                                        lines.push(currentLine);
+                                        currentLine = word;
+                                    } else {
+                                        // 单个单词也超长，按字符拆分
+                                        let chunk = '';
+                                        for (const ch of word) {
+                                            const testChunk = chunk + ch;
+                                            if (typeof doc.getTextWidth === 'function' && doc.getTextWidth(testChunk) > maxWidth) {
+                                                if (chunk) lines.push(chunk);
+                                                chunk = ch;
+                                            } else {
+                                                chunk = testChunk;
+                                            }
+                                        }
+                                        if (chunk) currentLine = chunk;
+                                    }
+                                } else {
+                                    currentLine = testLine;
+                                }
+                            }
+                            if (currentLine) lines.push(currentLine);
+                            return lines;
+                        }
+
+                        // Title
+                        let titleFontSize = 15;
+                        doc.setFontSize(titleFontSize);
+                        const displayTitle = fontConfig.chineseLoaded ? title : 'Loan Schedule Report';
+                        // 若整体太宽则先缩小字体
+                        try {
+                            while (titleFontSize > 10 && typeof doc.getTextWidth === 'function' && doc.getTextWidth(displayTitle) > maxTitleWidth) {
+                                titleFontSize -= 1;
+                                doc.setFontSize(titleFontSize);
+                            }
+                        } catch (e) { }
+
+                        // 拆成多行并绘制
+                        const titleLines = splitTextToLines(displayTitle, maxTitleWidth, titleFontSize);
+                        let cursorY = titleStartY;
+                        titleLines.forEach(line => {
+                            doc.text(line, PAGE_WIDTH / 2, cursorY, { align: 'center' });
+                            cursorY += titleFontSize + 2;
+                        });
+
+                        // Date label
+                        let dateFontSize = 10;
+                        doc.setFontSize(dateFontSize);
+                        const dateLabel = fontConfig.chineseLoaded ? `导出时间: ${dateStr} ${timeStr}` : `Export Date: ${dateStr} ${timeStr}`;
+                        try {
+                            while (dateFontSize > 8 && typeof doc.getTextWidth === 'function' && doc.getTextWidth(dateLabel) > maxTitleWidth) {
+                                dateFontSize -= 1;
+                                doc.setFontSize(dateFontSize);
+                            }
+                        } catch (e) { }
+                        const dateLines = splitTextToLines(dateLabel, maxTitleWidth, dateFontSize);
+                        dateLines.forEach(line => {
+                            doc.text(line, PAGE_WIDTH / 2, cursorY, { align: 'center' });
+                            cursorY += dateFontSize + 2;
+                        });
+
+                        // 最终表格起始 Y 基于绘制的行数自动计算
+                        const dateY = cursorY;
+
+                        // 5. 准备表格数据
+                        const cleanData = cleanTableData(data);
+                        if (cleanData.length === 0) {
+                            throw new Error('没有有效数据可导出');
+                        }
+
+                        const headers = fontConfig.chineseLoaded ?
+                            ['期数', '月供(元)', '本金(元)', '利息(元)', '剩余本金(元)'] :
+                            ['Period', 'Payment', 'Principal', 'Interest', 'Balance'];
+
+                        // 辅助：优雅格式化单元格（空值保持空字符串）
+                        const formatCell = (item, key1, key2) => {
+                            const raw = (item[key1] !== undefined) ? item[key1] : (item[key2] !== undefined ? item[key2] : '');
+                            if (raw === '' || raw === null || raw === undefined) return '';
+                            const num = Number(raw);
+                            if (!isNaN(num)) return formatCurrency(num);
+                            return String(raw);
+                        };
+
+                        const rows = cleanData.map(item => [
+                            (item.period || item['期数'] || ''),
+                            formatCell(item, 'payment', '月供(元)'),
+                            formatCell(item, 'principal', '本金(元)'),
+                            formatCell(item, 'interest', '利息(元)'),
+                            formatCell(item, 'balance', '剩余本金(元)')
+                        ]);
+
+                        // 6. 创建表格
+                        const tableStartY = dateY + 8; // 紧凑布局，减少顶部空白
+                        const bottomMargin = 20; // 底部保留空间，避免覆盖数据
+                        const desiredRowsPerPage = 24;
+                        // 计算简单表格行高以尽量满足每页 24 行
+                        const simpleRowHeight = Math.max(8, Math.floor((PAGE_HEIGHT - tableStartY - bottomMargin - 15) / desiredRowsPerPage));
+
+                        if (hasAutoTable) {
+                            // 使用 autoTable 插件（createAutoTable 已做兼容处理）
+                            createAutoTable(doc, {
+                                headers: [headers],
+                                body: rows,
+                                startY: tableStartY,
+                                fontConfig,
+                                leftMargin: LEFT_MARGIN,
+                                tableWidth: TABLE_WIDTH,
+                                // 让 autoTable 在顶部/底部保留空间
+                                _computed: { tableStartY, bottomMargin, simpleRowHeight }
+                            });
+                        } else {
+                            // 回退方案：使用简单表格绘制器
+                            createSimpleTable(doc, {
+                                headers: [headers],
+                                body: rows,
+                                startY: tableStartY,
+                                fontConfig,
+                                leftMargin: LEFT_MARGIN,
+                                tableWidth: TABLE_WIDTH,
+                                rowHeight: simpleRowHeight,
+                                bottomMargin: bottomMargin
+                            });
+                        }
+
+                        // 添加页脚并保存 PDF
+                        try {
+                            if (typeof addPageFooters === 'function') {
+                                addPageFooters(doc, fontConfig, dateStr, timeStr, PAGE_WIDTH, LEFT_MARGIN);
+                            }
+
+                            const safeFileName = `Loan_Report_${dateStr.replace(/[/:]/g, '-')}_${timeStr.replace(/:/g, '-')}.pdf`;
+                            // 保存并提示
+                            try {
+                                doc.save(safeFileName);
+                                showSuccessMessage(fontConfig.chineseLoaded);
+                            } catch (saveErr) {
+                                console.error('PDF 保存失败:', saveErr);
+                                throw saveErr;
+                            }
+                        } catch (e) {
+                            console.error('导出时保存PDF失败:', e);
+                            throw e;
+                        }
+
+                        function cleanTableData(data) {
+                            if (!Array.isArray(data)) {
+                                console.warn('数据不是数组格式');
+                                return [];
+                            }
+
+                            return data.filter(item => {
+                                if (!item || typeof item !== 'object') return false;
+
+                                // 检查所有字段是否都为空或0
+                                // 检查是否是有效数据行
+                                const hasPeriod = (item.period !== undefined && item.period !== null && item.period !== '') ||
+                                    (item['期数'] !== undefined && item['期数'] !== null && item['期数'] !== '');
+
+                                const hasPayment = (item.payment !== undefined && item.payment !== null && item.payment !== 0) ||
+                                    (item['月供(元)'] !== undefined && item['月供(元)'] !== null && item['月供(元)'] !== 0);
+
+                                const hasPrincipal = (item.principal !== undefined && item.principal !== null && item.principal !== 0) ||
+                                    (item['本金(元)'] !== undefined && item['本金(元)'] !== null && item['本金(元)'] !== 0);
+
+                                const hasInterest = (item.interest !== undefined && item.interest !== null && item.interest !== 0) ||
+                                    (item['利息(元)'] !== undefined && item['利息(元)'] !== null && item['利息(元)'] !== 0);
+
+                                const hasBalance = (item.balance !== undefined && item.balance !== null && item.balance !== 0) ||
+                                    (item['剩余本金(元)'] !== undefined && item['剩余本金(元)'] !== null && item['剩余本金(元)'] !== 0);
+
+                                // 只要有一个字段有效就保留
+                                return hasPeriod || hasPayment || hasPrincipal || hasInterest || hasBalance;
+                            });
+                        }
+
+                        // NOTE: 页脚函数在文件后面只保留一个定义（避免重复）。
+
+                        function createAutoTable(doc, options) {
+                            const { headers, body, startY, fontConfig, leftMargin, tableWidth } = options;
+
+                            // 不使用固定像素列宽，改由 autoTable 自适应以避免“宽度无法适配页面”的错误
+                            const autoTableConfig = {
+                                head: headers,
+                                body: body,
+                                startY: startY,
+                                theme: 'grid',
+                                margin: { left: leftMargin, right: leftMargin },
+                                tableWidth: tableWidth,
+                                headStyles: {
+                                    fillColor: [41, 128, 185],
+                                    textColor: [255, 255, 255],
+                                    fontSize: 10,
+                                    fontStyle: 'bold',
+                                    font: fontConfig.currentFont
+                                },
+                                bodyStyles: {
+                                    fontSize: 9,
+                                    cellPadding: 3,
+                                    font: fontConfig.currentFont
+                                },
+                                alternateRowStyles: {
+                                    fillColor: [245, 245, 245]
+                                },
+                                // 不传入 columnStyles，让 autoTable 自动计算列宽
+                                styles: {
+                                    font: fontConfig.currentFont,
+                                    fontStyle: 'normal',
+                                    lineColor: [200, 200, 200],
+                                    lineWidth: 0.1,
+                                    fontSize: 9
+                                },
+                                margin: Object.assign({ top: startY, bottom: (options && options._computed && options._computed.bottomMargin) || 20 }, { left: leftMargin, right: leftMargin }),
+                                // 添加didDrawPage回调，但不要在里面画页脚
+                                didDrawPage: function (data) {
+                                    // 这里可以添加其他绘制，但页脚在autoTable绘制完后统一添加
+                                },
+                                willDrawCell: function (data) {
+                                    // 可选：在单元格绘制前做一些处理
+                                },
+                                didDrawCell: function (data) {
+                                    // 可选：在单元格绘制后做一些处理
+                                }
+                            };
+
+                            try {
+                                // 优先使用 doc.autoTable
+                                if (doc && typeof doc.autoTable === 'function') {
+                                    doc.autoTable(autoTableConfig);
+                                    return;
+                                }
+
+                                // 其它可能的挂载点
+                                const candidates = [
+                                    (window.jspdf && window.jspdf.autoTable),
+                                    (window.jspdf && window.jspdf.default && window.jspdf.default.autoTable),
+                                    (window.autoTable),
+                                    (doc && doc.constructor && doc.constructor.autoTable)
+                                ];
+
+                                let invoked = false;
+                                for (const fn of candidates) {
+                                    if (typeof fn === 'function') {
+                                        try {
+                                            // 一些实现期望 (doc, config)，一些期望 (config)
+                                            fn(doc, autoTableConfig);
+                                            invoked = true;
+                                            break;
+                                        } catch (e) {
+                                            try {
+                                                fn(autoTableConfig);
+                                                invoked = true;
+                                                break;
+                                            } catch (e2) {
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (!invoked) throw new Error('autoTable not available');
+                            } catch (e) {
+                                console.warn('autoTable 调用失败，降级为简单表格：', e && e.message ? e.message : e);
+                                createSimpleTable(doc, options);
+                            }
+                        }
+
+                        function createSimpleTable(doc, options) {
+                            const { headers, body, startY, fontConfig, leftMargin, tableWidth, rowHeight: optRowHeight, bottomMargin } = options;
+
+                            console.warn('autoTable插件未找到，使用简单表格');
+
+                            // 保存当前的字体设置
+                            const originalFont = doc.getFont();
+
+                            const x = (typeof leftMargin === 'number') ? leftMargin : 10;
+                            const pageWidth = doc.internal.pageSize.getWidth();
+                            const availableTableWidth = (typeof tableWidth === 'number') ? tableWidth : (pageWidth - x * 2);
+                            const pageHeight = doc.internal.pageSize.getHeight();
+                            const bottomGap = (typeof bottomMargin === 'number') ? bottomMargin : 30;
+
+                            // 使用传入的行高或默认值
+                            const rowHeight = (typeof optRowHeight === 'number') ? optRowHeight : 10;
+
+                            // 均分列宽以避免超出页面
+                            const colCount = (headers && headers[0]) ? headers[0].length : 5;
+                            const colWidths = new Array(colCount).fill(Math.floor(availableTableWidth / colCount));
+
+                            // 绘制表头函数（可在新页重复绘制）
+                            const drawHeader = (yPos) => {
+                                let currentX = x;
+                                headers[0].forEach((header, index) => {
+                                    doc.setFillColor(41, 128, 185);
+                                    doc.setTextColor(255, 255, 255);
+                                    doc.rect(currentX, yPos, colWidths[index], rowHeight, 'F');
+                                    doc.setFontSize(10);
+                                    doc.text(header, currentX + 2, yPos + Math.floor(rowHeight * 0.7));
+                                    currentX += colWidths[index];
+                                });
+                                return yPos + rowHeight;
+                            };
+
+                            // 初始位置
+                            let y = startY;
+                            // 绘制首页表头
+                            y = drawHeader(y);
+
+                            // 可展示的底部边界
+                            const pageBottom = pageHeight - bottomGap;
+
+                            // 绘制数据行
+                            body.forEach((row, rowIndex) => {
+                                // 分页检查
+                                if (y + rowHeight > pageBottom) {
+                                    doc.addPage();
+                                    y = startY; // 在新页再次绘制表头
+                                    y = drawHeader(y);
+                                }
+
+                                let currentX = x;
+                                row.forEach((cell, colIndex) => {
+                                    // 交替行背景色
+                                    if (rowIndex % 2 === 0) {
+                                        doc.setFillColor(245, 245, 245);
+                                        doc.rect(currentX, y, colWidths[colIndex], rowHeight, 'F');
+                                    }
+
+                                    doc.setTextColor(0, 0, 0);
+                                    doc.setFontSize(9);
+                                    const text = (cell === undefined || cell === null) ? '' : String(cell);
+                                    doc.text(text, currentX + 2, y + Math.floor(rowHeight * 0.7));
+                                    currentX += colWidths[colIndex];
+                                });
+
+                                y += rowHeight;
+                            });
+
+                            // 恢复字体设置
+                            doc.setFont(originalFont.fontName, originalFont.fontStyle);
+                        }
+
+                        function addPageFooters(doc, fontConfig, dateStr, timeStr, pageWidth, leftMargin) {
+                            const pageCount = doc.internal.getNumberOfPages();
+                            const docId = generateDocId();
+
+                            const leftX = (typeof leftMargin === 'number') ? leftMargin : 20;
+                            const rightX = (typeof pageWidth === 'number') ? (pageWidth - leftX) : (doc.internal.pageSize.getWidth() - leftX);
+
+                            for (let i = 1; i <= pageCount; i++) {
+                                doc.setPage(i);
+
+                                const pageHeight = doc.internal.pageSize.getHeight();
+
+                                // 设置字体
+                                doc.setFont(fontConfig.currentFont, fontConfig.fontStyle);
+                                doc.setFontSize(7);
+
+                                // 页脚线
+                                doc.setDrawColor(180, 180, 180);
+                                doc.setLineWidth(0.3);
+                                const lineY = pageHeight - 15;
+                                doc.line(leftX, lineY, rightX, lineY);
+
+                                // 页码
+                                const pageText = fontConfig.chineseLoaded ?
+                                    `第 ${i} 页 / 共 ${pageCount} 页` :
+                                    `Page ${i} of ${pageCount}`;
+
+                                // 文档ID
+                                const idText = fontConfig.chineseLoaded ?
+                                    `文档ID: ${docId}` :
+                                    `Doc ID: ${docId}`;
+
+                                // 导出时间
+                                const exportTime = fontConfig.chineseLoaded ?
+                                    `导出: ${dateStr} ${timeStr}` :
+                                    `Exported: ${dateStr} ${timeStr}`;
+
+                                // 绘制页脚文本（基于页面宽度的左右留白），对 idText 做宽度自适应
+                                doc.setFontSize(7);
+                                try {
+                                    const maxWidthForId = rightX - leftX;
+                                    let idFontSize = 7;
+                                    if (typeof doc.getTextWidth === 'function') {
+                                        while (idFontSize > 5 && doc.getTextWidth(idText) > maxWidthForId) {
+                                            idFontSize -= 0.5;
+                                            doc.setFontSize(idFontSize);
+                                        }
+                                    }
+                                } catch (e) {
+                                    // ignore
+                                }
+
+                                doc.text(pageText, pageWidth / 2, pageHeight - 12, { align: 'center' });
+                                doc.text(idText, rightX, pageHeight - 12, { align: 'right' });
+                                doc.text(exportTime, leftX, pageHeight - 12, { align: 'left' });
+                            }
+                        }
+
+                        function generateDocId() {
+                            const timestamp = Date.now().toString().slice(-8);
+                            const random = Math.random().toString(36).substr(2, 4).toUpperCase();
+                            return `DOC-${timestamp}-${random}`;
+                        }
+
+                        function showSuccessMessage(chineseLoaded) {
+                            setTimeout(() => {
+                                const message = chineseLoaded ?
+                                    'PDF文件导出成功！' :
+                                    'PDF exported successfully!';
+
+                                // 使用更优雅的通知方式
+                                if (typeof Toastify === 'object' && Toastify) {
+                                    Toastify({
+                                        text: message,
+                                        duration: 3000,
+                                        gravity: "top",
+                                        position: "right",
+                                        backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
+                                    }).showToast();
+                                } else {
+                                    alert(message);
+                                }
+                            }, 100);
+                        }
+
                     } catch (error) {
                         console.error('导出PDF失败:', error);
-                        alert('PDF导出需要额外的服务器支持，已生成简化版PDF');
+                        // 使用统一错误处理函数
+                        handleExportError(error, data, title, dateStr, timeStr);
                     }
                 };
 
+                function handleExportError(error, data, title, dateStr, timeStr) {
+                    if (error.message.includes('font') || error.message.includes('字体')) {
+                        console.log('字体相关错误，尝试使用备用方案...');
+                        exportWithoutChineseFont(data, title, dateStr, timeStr);
+                    } else if (error.message.includes('jsPDF库未加载')) {
+                        alert('请先加载jsPDF库');
+                    } else if (error.message.includes('没有有效数据')) {
+                        alert('没有有效数据可导出');
+                    } else {
+                        alert(`导出失败: ${error.message}`);
+                    }
+                }
+
+                // 备用函数
+                function exportWithoutChineseFont(data, title, dateStr, timeStr) {
+                    try {
+                        if (!window.jspdf) {
+                            throw new Error('jsPDF库未加载');
+                        }
+
+                        // (已移除嵌套导出预览函数，改为全局定义以便 setup 内部调用)
+
+
+                        const { jsPDF } = window.jspdf;
+                        const doc = new jsPDF();
+
+                        // 使用默认字体
+                        doc.setFont("helvetica", "normal");
+                        doc.setFontSize(16);
+                        doc.text("Loan Schedule Report", 105, 20, { align: 'center' });
+
+                        doc.setFontSize(10);
+                        doc.text(`Export Date: ${dateStr} ${timeStr}`, 105, 30, { align: 'center' });
+
+                        // 添加页脚
+                        const docId = generateDocId();
+                        const pageHeight = doc.internal.pageSize.getHeight();
+
+                        // 页脚线
+                        doc.setDrawColor(180, 180, 180);
+                        doc.setLineWidth(0.3);
+                        doc.line(15, pageHeight - 15, 190, pageHeight - 15);
+
+                        // 页脚信息
+                        doc.setFontSize(7);
+                        doc.text(`Page 1 of 1`, 105, pageHeight - 12, { align: 'center' });
+                        doc.text(`Doc ID: ${docId}`, 190, pageHeight - 12, { align: 'right' });
+                        doc.text(`Exported: ${dateStr} ${timeStr}`, 15, pageHeight - 12, { align: 'left' });
+
+                        // 添加简单数据表格
+                        if (Array.isArray(data) && data.length > 0) {
+                            const sample = data.slice(0, 5); // 只显示前5行
+                            let y = 50;
+
+                            sample.forEach((item, index) => {
+                                const text = `Period ${item.period || index + 1}: Payment ${formatCurrency(item.payment || 0)}`;
+                                doc.text(text, 20, y);
+                                y += 10;
+                            });
+                        }
+
+                        const safeFileName = `Loan_Report_${dateStr.replace(/[/:]/g, '-')}_${timeStr.replace(/:/g, '-')}.pdf`;
+                        doc.save(safeFileName);
+
+                        alert('PDF exported (English version)');
+
+                    } catch (error) {
+                        console.error('备用导出失败:', error);
+
+                        // 最后的手段：创建文本文件
+                        try {
+                            const textContent = JSON.stringify(data, null, 2);
+                            const blob = new Blob([textContent], { type: 'text/plain' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `data_${dateStr}_${timeStr}.txt`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                            alert('PDF导出失败，已生成文本文件');
+                        } catch (fallbackError) {
+                            alert('导出完全失败，请检查控制台错误信息');
+                        }
+                    }
+                }
+
                 // 更新模态框表格
+                // ---------- 导出预览弹窗（在最终导出前展示） - 全局可用 ----------
+                function showExportPreview(format, data, filename, onConfirm) {
+                    // data: 数组对象
+                    removeExportPreviewModal();
+                    const modal = createExportPreviewModal(format, data, filename, onConfirm);
+                    document.body.appendChild(modal);
+                }
+
+                function createExportPreviewModal(format, data, filename, onConfirm) {
+                    const container = document.createElement('div');
+                    container.className = 'export-preview-overlay';
+                    container.style.cssText = `position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2000;`;
+
+                    const box = document.createElement('div');
+                    box.style.cssText = 'width:90%;max-width:900px;background:#fff;border-radius:10px;overflow:auto;max-height:80vh;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,0.3);';
+
+                    const title = document.createElement('div');
+                    title.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;';
+                    title.innerHTML = `<strong>预览导出 (${format.toUpperCase()})</strong><span style="font-size:12px;color:#666">${filename}</span>`;
+
+                    const tableWrap = document.createElement('div');
+                    tableWrap.style.cssText = 'overflow:auto;border:1px solid #eee;border-radius:6px;padding:8px;background:#fafafa;';
+
+                    const table = document.createElement('table');
+                    table.style.cssText = 'width:100%;border-collapse:collapse;font-size:13px;';
+
+                    // 表头
+                    const thead = document.createElement('thead');
+                    const headerRow = document.createElement('tr');
+                    const keys = Object.keys(data[0] || {});
+                    keys.forEach(k => {
+                        const th = document.createElement('th');
+                        th.style.cssText = 'padding:8px;border-bottom:1px solid #eee;text-align:left;background:#f2f6fb;color:#0b3d91;';
+                        th.textContent = k;
+                        headerRow.appendChild(th);
+                    });
+                    thead.appendChild(headerRow);
+
+                    const tbody = document.createElement('tbody');
+                    // 显示全部行（按用户要求预览全部）
+                    const previewRows = Array.isArray(data) ? data : [];
+                    previewRows.forEach(row => {
+                        const tr = document.createElement('tr');
+                        keys.forEach(k => {
+                            const td = document.createElement('td');
+                            td.style.cssText = 'padding:8px;border-bottom:1px solid #f5f7fb;';
+                            let raw = row[k];
+                            if (raw === undefined || raw === null) {
+                                td.textContent = '';
+                            } else if (typeof raw === 'number') {
+                                // 数字统一格式化为两位小数
+                                td.textContent = formatCurrency(raw);
+                            } else if (typeof raw === 'string') {
+                                // 尝试解析可解析的数字字符串（如 '12345.67' 或 '12,345.67'）
+                                const candidate = raw.toString().replace(/[,\s¥￥]/g, '');
+                                const num = parseFloat(candidate);
+                                if (!isNaN(num) && candidate.match(/[0-9]/)) {
+                                    td.textContent = formatCurrency(num);
+                                } else {
+                                    td.textContent = raw;
+                                }
+                            } else {
+                                td.textContent = String(raw);
+                            }
+                            tr.appendChild(td);
+                        });
+                        tbody.appendChild(tr);
+                    });
+
+                    table.appendChild(thead);
+                    table.appendChild(tbody);
+                    tableWrap.appendChild(table);
+
+                    const footer = document.createElement('div');
+                    footer.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;margin-top:10px;';
+
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.textContent = '取消';
+                    cancelBtn.style.cssText = 'padding:8px 12px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer;';
+                    cancelBtn.onclick = () => removeExportPreviewModal();
+
+                    const exportBtn = document.createElement('button');
+                    exportBtn.textContent = '确认导出';
+                    exportBtn.style.cssText = 'padding:8px 12px;border-radius:6px;border:none;background:#2c7be5;color:white;cursor:pointer;';
+                    exportBtn.onclick = async () => {
+                        try {
+                            if (typeof onConfirm === 'function') {
+                                await Promise.resolve(onConfirm());
+                            }
+                        } catch (err) {
+                            console.error('导出执行出错:', err);
+                            alert('导出失败: ' + (err && err.message ? err.message : err));
+                        } finally {
+                            removeExportPreviewModal();
+                        }
+                    };
+
+                    footer.appendChild(cancelBtn);
+                    footer.appendChild(exportBtn);
+
+                    box.appendChild(title);
+                    box.appendChild(tableWrap);
+                    box.appendChild(footer);
+                    container.appendChild(box);
+
+                    // 点击遮罩关闭（但阻止点击 box 内部关闭）
+                    container.addEventListener('click', (e) => {
+                        if (e.target === container) removeExportPreviewModal();
+                    });
+
+                    return container;
+                }
+
+                function removeExportPreviewModal() {
+                    const old = document.querySelector('.export-preview-overlay');
+                    if (old && old.parentNode) old.parentNode.removeChild(old);
+                }
                 const updateModalTable = () => {
                     if (modalPeriod.value < 1) modalPeriod.value = 1;
                     if (modalPeriod.value > totalMonths.value) modalPeriod.value = totalMonths.value;
@@ -2670,13 +3468,12 @@
     </script>
     <div class="footer">
         <p>k © 2026 | 基于Vue.js开发 | 数据存储于浏览器本地</p>
-
-    <script>
-// 在游戏界面右下角添加浮动切换按钮
-document.addEventListener('DOMContentLoaded', function() {
-  // 创建浮动按钮容器
-  const floatContainer = document.createElement('div');
-  floatContainer.style.cssText = `
+        <script>
+            // 在游戏界面右下角添加浮动切换按钮
+            document.addEventListener('DOMContentLoaded', function () {
+                // 创建浮动按钮容器
+                const floatContainer = document.createElement('div');
+                floatContainer.style.cssText = `
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -2685,13 +3482,13 @@ document.addEventListener('DOMContentLoaded', function() {
     flex-direction: column;
     gap: 10px;
   `;
-  
-  // 创建返回主页按钮
-  const homeBtn = document.createElement('a');
-  homeBtn.href = '/';
-  homeBtn.innerHTML = '🏠';
-  homeBtn.title = '返回主页';
-  homeBtn.style.cssText = `
+
+                // 创建返回主页按钮
+                const homeBtn = document.createElement('a');
+                homeBtn.href = '/';
+                homeBtn.innerHTML = '🏠';
+                homeBtn.title = '返回主页';
+                homeBtn.style.cssText = `
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2705,21 +3502,21 @@ document.addEventListener('DOMContentLoaded', function() {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     transition: all 0.3s;
   `;
-  homeBtn.onmouseover = () => {
-    homeBtn.style.transform = 'scale(1.1)';
-    homeBtn.style.boxShadow = '0 6px 12px rgba(59, 130, 246, 0.5)';
-  };
-  homeBtn.onmouseout = () => {
-    homeBtn.style.transform = 'scale(1)';
-    homeBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
-  };
-  
-  // 创建切换到华容道按钮
-  const switchBtn = document.createElement('a');
-  switchBtn.href = '/klotski-v3';
-  switchBtn.innerHTML = '🧩';
-  switchBtn.title = '玩数字华容道';
-  switchBtn.style.cssText = `
+                homeBtn.onmouseover = () => {
+                    homeBtn.style.transform = 'scale(1.1)';
+                    homeBtn.style.boxShadow = '0 6px 12px rgba(59, 130, 246, 0.5)';
+                };
+                homeBtn.onmouseout = () => {
+                    homeBtn.style.transform = 'scale(1)';
+                    homeBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+                };
+
+                // 创建切换到华容道按钮
+                const switchBtn = document.createElement('a');
+                switchBtn.href = '/klotski-v3';
+                switchBtn.innerHTML = '🧩';
+                switchBtn.title = '玩数字华容道';
+                switchBtn.style.cssText = `
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2733,31 +3530,31 @@ document.addEventListener('DOMContentLoaded', function() {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     transition: all 0.3s;
   `;
-  switchBtn.onmouseover = () => {
-    switchBtn.style.transform = 'scale(1.1)';
-    switchBtn.style.boxShadow = '0 6px 12px rgba(16, 185, 129, 0.5)';
-  };
-  switchBtn.onmouseout = () => {
-    switchBtn.style.transform = 'scale(1)';
-    switchBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
-  };
-  
-  // 添加到页面
-  floatContainer.appendChild(homeBtn);
-  floatContainer.appendChild(switchBtn);
-  document.body.appendChild(floatContainer);
-  
-  // 可调整z-index避免被覆盖
-  const gameHeader = document.querySelector('.game-header, .header, .sudoku-header');
-  if (gameHeader) {
-    const zIndex = parseInt(window.getComputedStyle(gameHeader).zIndex);
-    if (zIndex > 1000) {
-      document.getElementById('game-nav').style.zIndex = (zIndex + 100).toString();
-      floatContainer.style.zIndex = (zIndex + 100).toString();
-    }
-  }
-});
-</script>
+                switchBtn.onmouseover = () => {
+                    switchBtn.style.transform = 'scale(1.1)';
+                    switchBtn.style.boxShadow = '0 6px 12px rgba(16, 185, 129, 0.5)';
+                };
+                switchBtn.onmouseout = () => {
+                    switchBtn.style.transform = 'scale(1)';
+                    switchBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+                };
+
+                // 添加到页面
+                floatContainer.appendChild(homeBtn);
+                floatContainer.appendChild(switchBtn);
+                document.body.appendChild(floatContainer);
+
+                // 可调整z-index避免被覆盖
+                const gameHeader = document.querySelector('.game-header, .header, .sudoku-header');
+                if (gameHeader) {
+                    const zIndex = parseInt(window.getComputedStyle(gameHeader).zIndex);
+                    if (zIndex > 1000) {
+                        document.getElementById('game-nav').style.zIndex = (zIndex + 100).toString();
+                        floatContainer.style.zIndex = (zIndex + 100).toString();
+                    }
+                }
+            });
+        </script>
 </body>
 
 </html>

@@ -1205,6 +1205,38 @@
           border-radius: 8px;
         }
 
+        .prepay-dist {
+          margin-left: 100px;
+          margin-top: 6px;
+          padding: 10px 14px 10px 10px;
+          background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
+          border-radius: 8px;
+          border: 1px solid #d0daf8;
+        }
+        .prepay-dist-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          line-height: 1.8;
+        }
+        .prepay-dist-row:first-child {
+          margin-bottom: 2px;
+        }
+        .prepay-dist-label {
+          font-size: 12px;
+          color: #666;
+          min-width: 60px;
+        }
+        .prepay-dist-value {
+          font-size: 14px;
+          font-weight: 600;
+          color: #1a1a2e;
+        }
+        .prepay-dist-unit {
+          font-size: 11px;
+          color: #888;
+        }
+
         .action-buttons {
           display: flex;
           gap: 10px;
@@ -2713,6 +2745,17 @@
                                 <label class="option-label">还款金额：</label>
                                 <input v-model.number="prepaymentAmount" type="number" step="1000" class="option-input" :placeholder="'最大可还：' + formatCurrency(getRemainingPrincipalAtSelected())" :max="getRemainingPrincipalAtSelected()" min="0">
                             </div>
+                            <div v-if="loanType === 'combined' && prepaymentType === 'partial' && prepaymentDistribution" class="prepay-dist">
+                                <div class="prepay-dist-row">
+                                    <span class="prepay-dist-label">公积金</span>
+                                    <span class="prepay-dist-value">{{ formatCurrency(prepaymentDistribution.providentPrepay) }}</span>
+                                    <span class="prepay-dist-unit">（整万）</span>
+                                </div>
+                                <div class="prepay-dist-row">
+                                    <span class="prepay-dist-label">商业贷款</span>
+                                    <span class="prepay-dist-value">{{ formatCurrency(prepaymentDistribution.commercialPrepay) }}</span>
+                                </div>
+                            </div>
                             <div class="option-group">
                                 <label class="option-label">还款方式：</label>
                                 <select v-model="prepaymentOption" class="option-select">
@@ -3095,6 +3138,36 @@
 
             const commercialAllocatedAmount = computed(() => {
                 return optimizedLoanAmount.value - providentAllocatedAmount.value;
+            });
+
+            // 组合贷提前还款分配（公积金整万，余额给商贷）
+            const prepaymentDistribution = computed(() => {
+                if (loanType.value !== 'combined' || prepaymentType.value !== 'partial') {
+                    return null;
+                }
+                const totalPrepay = prepaymentAmount.value || 0;
+                if (totalPrepay <= 0) {
+                    return { commercialPrepay: 0, providentPrepay: 0, commercialRatio: 0, providentRatio: 0, totalPrepay: 0 };
+                }
+                const remainingPrincipal = getRemainingPrincipalAtSelected();
+                if (remainingPrincipal <= 0) {
+                    return { commercialPrepay: 0, providentPrepay: 0, commercialRatio: 0, providentRatio: 0, totalPrepay: 0 };
+                }
+                const commercialShare = combinedCommercialPart.value / 10;
+                const providentShare = (10 - combinedCommercialPart.value) / 10;
+                const commRemaining = remainingPrincipal * commercialShare;
+                const provRemaining = remainingPrincipal * providentShare;
+                // 公积金整万（向下取整），剩余给商贷
+                const provPrepayRaw = totalPrepay * providentShare;
+                const provPrepay = Math.min(Math.floor(provPrepayRaw / 10000) * 10000, provRemaining, totalPrepay);
+                const commercialPrepay = Math.min(totalPrepay - provPrepay, commRemaining);
+                return {
+                    commercialPrepay: Math.round(commercialPrepay * 100) / 100,
+                    providentPrepay: Math.round(provPrepay * 100) / 100,
+                    commercialRatio: commercialShare,
+                    providentRatio: providentShare,
+                    totalPrepay: Math.round((commercialPrepay + provPrepay) * 100) / 100
+                };
             });
 
             // 是否显示优化提示
@@ -4845,18 +4918,66 @@
 
                 let newSchedule = [];
 
-                // 优先处理提前还款（全面 > 部分）
-                if (prepaymentChanged) {
-                    if (prepaymentType.value === 'full') {
-                        // 提前全部还款
-                        newSchedule = calculateFullPrepayment();
-                    } else {
-                        // 提前部分还款
-                        newSchedule = calculatePartialPrepayment(remainingPrincipal, remainingMonths, useRate, useMethod);
+                // 合并两个贷款 schedules 的辅助函数
+                const mergeLoanSchedules = (commSchedule, provSchedule) => {
+                    const result = [];
+                    const maxLen = Math.max(commSchedule.length, provSchedule.length);
+                    for (let i = 0; i < maxLen; i++) {
+                        const c = commSchedule[i] || { monthlyPayment: 0, principal: 0, interest: 0, remainingPrincipal: 0 };
+                        const p = provSchedule[i] || { monthlyPayment: 0, principal: 0, interest: 0, remainingPrincipal: 0 };
+                        result.push({
+                            monthlyPayment: (c.monthlyPayment || 0) + (p.monthlyPayment || 0),
+                            principal: (c.principal || 0) + (p.principal || 0),
+                            interest: (c.interest || 0) + (p.interest || 0),
+                            remainingPrincipal: (c.remainingPrincipal || 0) + (p.remainingPrincipal || 0)
+                        });
                     }
-                } else if (rateChanged || methodChanged) {
-                    // 仅利率变更或还款方式变更
-                    newSchedule = calculateScheduleWithModifications(remainingPrincipal, remainingMonths, useRate, useMethod);
+                    return result;
+                };
+
+                // 组合贷：分别计算商业贷款和公积金贷款的还款计划，再合并
+                if (loanType.value === 'combined') {
+                    const commercialShare = combinedCommercialPart.value / 10;
+                    const providentShare = (10 - combinedCommercialPart.value) / 10;
+                    const commRemaining = remainingPrincipal * commercialShare;
+                    const provRemaining = remainingPrincipal * providentShare;
+                    const dist = prepaymentDistribution.value;
+
+                    // 提前全部还款：两部分都结清
+                    if (prepaymentChanged && prepaymentType.value === 'full') {
+                        const commFull = calculatePartialPrepaymentForLoan(commRemaining, remainingMonths, commercialRate.value, useMethod, 0, commRemaining);
+                        const provFull = calculatePartialPrepaymentForLoan(provRemaining, remainingMonths, providentRate.value, useMethod, 0, provRemaining);
+                        newSchedule = mergeLoanSchedules(commFull, provFull);
+                    } else if (prepaymentChanged && prepaymentType.value === 'partial') {
+                        // 提前部分还款：公积金整万，其余给商贷
+                        const commPrepay = dist ? dist.commercialPrepay : 0;
+                        const provPrepay = dist ? dist.providentPrepay : 0;
+                        const commOriginalMonthlyPayment = getMonthlyPaymentAtPeriod(commercialAllocatedAmount.value, commercialRate.value, loanYears.value, selectedPeriod.value, useMethod);
+                        const provOriginalMonthlyPayment = getMonthlyPaymentAtPeriod(providentAllocatedAmount.value, providentRate.value, loanYears.value, selectedPeriod.value, useMethod);
+                        const commSchedule = calculatePartialPrepaymentForLoan(commRemaining, remainingMonths, commercialRate.value, useMethod, commOriginalMonthlyPayment, commPrepay);
+                        const provSchedule = calculatePartialPrepaymentForLoan(provRemaining, remainingMonths, providentRate.value, useMethod, provOriginalMonthlyPayment, provPrepay);
+                        newSchedule = mergeLoanSchedules(commSchedule, provSchedule);
+                    } else if (rateChanged || methodChanged) {
+                        // 仅利率变更或还款方式变更
+                        const commOriginalMonthlyPayment = getMonthlyPaymentAtPeriod(commercialAllocatedAmount.value, commercialRate.value, loanYears.value, selectedPeriod.value, useMethod);
+                        const provOriginalMonthlyPayment = getMonthlyPaymentAtPeriod(providentAllocatedAmount.value, providentRate.value, loanYears.value, selectedPeriod.value, useMethod);
+                        const commRate = rateChanged ? newInterestRate.value : commercialRate.value;
+                        const provRate = rateChanged ? newInterestRate.value : providentRate.value;
+                        const commSchedule = calculatePartialPrepaymentForLoan(commRemaining, remainingMonths, commRate, useMethod, commOriginalMonthlyPayment, 0);
+                        const provSchedule = calculatePartialPrepaymentForLoan(provRemaining, remainingMonths, provRate, useMethod, provOriginalMonthlyPayment, 0);
+                        newSchedule = mergeLoanSchedules(commSchedule, provSchedule);
+                    }
+                } else {
+                    // 非组合贷
+                    if (prepaymentChanged) {
+                        if (prepaymentType.value === 'full') {
+                            newSchedule = calculateFullPrepayment();
+                        } else {
+                            newSchedule = calculatePartialPrepayment(remainingPrincipal, remainingMonths, useRate, useMethod);
+                        }
+                    } else if (rateChanged || methodChanged) {
+                        newSchedule = calculateScheduleWithModifications(remainingPrincipal, remainingMonths, useRate, useMethod);
+                    }
                 }
 
                 // 构建备注（记录本次变动的项目）
@@ -4864,8 +4985,16 @@
                 if (rateChanged)    parts.push('降利率至' + newInterestRate.value + '%');
                 if (methodChanged) parts.push('改' + (newRepaymentMethod.value === 'equalPrincipalInterest' ? '等额本息' : '等额本金'));
                 if (prepaymentType.value === 'full')     parts.push('提前结清');
-                else if (prepaymentType.value === 'partial' && prepaymentAmount.value > 0)
-                    parts.push('提前还' + formatCurrency(prepaymentAmount.value) + (prepaymentOption.value === 'reduceTerm' ? '缩期' : '减月供'));
+                else if (prepaymentType.value === 'partial' && prepaymentAmount.value > 0) {
+                    if (loanType.value === 'combined' && prepaymentDistribution.value) {
+                        const d = prepaymentDistribution.value;
+                        if (d.providentPrepay > 0) parts.push('公积金提前还' + formatCurrency(d.providentPrepay));
+                        if (d.commercialPrepay > 0) parts.push('商贷提前还' + formatCurrency(d.commercialPrepay));
+                        parts.push(prepaymentOption.value === 'reduceTerm' ? '缩期' : '减月供');
+                    } else {
+                        parts.push('提前还' + formatCurrency(prepaymentAmount.value) + (prepaymentOption.value === 'reduceTerm' ? '缩期' : '减月供'));
+                    }
+                }
                 const remark = parts.length > 0 ? parts.join(' / ') : '';
 
                 // 在选中期行也写入备注（同步到repaymentTable，让getPreviewSchedule能读到）
@@ -4938,7 +5067,136 @@
                 return schedule;
             };
 
-            // 计算提前部分还款
+            // 获取指定期数的月供（用于组合贷分别计算各部分）
+            const getMonthlyPaymentAtPeriod = (loanAmount, annualRate, years, period, method) => {
+                if (!loanAmount || loanAmount <= 0 || period <= 0) return 0;
+                const totalPeriods = years * 12;
+                if (period > totalPeriods) return 0;
+                const monthlyRate = annualRate / 100 / 12;
+                if (method === 'equalPrincipalInterest') {
+                    return calculateEqualPrincipalInterest(loanAmount, annualRate, years);
+                } else {
+                    // 等额本金：每期本金固定，每期月供递减
+                    const principalPerMonth = loanAmount / totalPeriods;
+                    const remaining = loanAmount - principalPerMonth * (period - 1);
+                    return principalPerMonth + remaining * monthlyRate;
+                }
+            };
+
+            // 计算单笔贷款的提前部分还款（接受原月供参数，用于组合贷分别计算）
+            const calculatePartialPrepaymentForLoan = (principal, months, rate, method, originalMonthlyPayment, prepayAmount) => {
+                const newPrincipal = Math.max(principal - prepayAmount, 0);
+                const schedule = [];
+                let remaining = newPrincipal;
+                const monthlyRate = rate / 100 / 12;
+
+                if (newPrincipal <= 0) {
+                    return [{
+                        monthlyPayment: 0,
+                        principal: principal,
+                        interest: 0,
+                        remainingPrincipal: 0
+                    }];
+                }
+
+                if (prepaymentOption.value === 'reduceTerm') {
+                    // 月供不变，用对数公式按剩余本金和原月供重新计算期数，期数缩短
+                    if (method === 'equalPrincipalInterest') {
+                        const monthlyR = monthlyRate;
+                        if (originalMonthlyPayment > 0 && monthlyR > 0) {
+                            const ratio = (newPrincipal * monthlyR) / originalMonthlyPayment;
+                            if (ratio < 1) {
+                                const newMonths = Math.ceil(-Math.log(1 - ratio) / Math.log(1 + monthlyR));
+                                let remaining = newPrincipal;
+                                for (let i = 0; i < newMonths; i++) {
+                                    const isLastPeriod = (i === newMonths - 1);
+                                    const interest = remaining * monthlyR;
+                                    let principalPaid;
+                                    let payment;
+                                    if (isLastPeriod) {
+                                        principalPaid = remaining;
+                                        payment = principalPaid + interest;
+                                        remaining = 0;
+                                    } else {
+                                        principalPaid = originalMonthlyPayment - interest;
+                                        payment = originalMonthlyPayment;
+                                        remaining -= principalPaid;
+                                    }
+                                    schedule.push({
+                                        monthlyPayment: payment,
+                                        principal: principalPaid,
+                                        interest,
+                                        remainingPrincipal: Math.max(remaining, 0)
+                                    });
+                                }
+                            }
+                        }
+                    } else {
+                        // 等额本金
+                        const monthlyR = monthlyRate;
+                        if (originalMonthlyPayment > 0 && monthlyR > 0) {
+                            const ratio = (newPrincipal * monthlyR) / originalMonthlyPayment;
+                            if (ratio < 1) {
+                                const newMonths = Math.ceil(-Math.log(1 - ratio) / Math.log(1 + monthlyR));
+                                let remaining = newPrincipal;
+                                for (let i = 0; i < newMonths; i++) {
+                                    const isLastPeriod = (i === newMonths - 1);
+                                    const interest = remaining * monthlyR;
+                                    let principalPaid;
+                                    let payment;
+                                    if (isLastPeriod) {
+                                        principalPaid = remaining;
+                                        payment = principalPaid + interest;
+                                        remaining = 0;
+                                    } else {
+                                        principalPaid = originalMonthlyPayment - interest;
+                                        payment = originalMonthlyPayment;
+                                        remaining -= principalPaid;
+                                    }
+                                    schedule.push({
+                                        monthlyPayment: payment,
+                                        principal: principalPaid,
+                                        interest,
+                                        remainingPrincipal: Math.max(remaining, 0)
+                                    });
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // 期数不变，重新计算月供
+                    if (method === 'equalPrincipalInterest') {
+                        const newMonthlyPayment = calculateEqualPrincipalInterest(newPrincipal, rate, months / 12);
+                        for (let i = 0; i < months; i++) {
+                            const interest = remaining * monthlyRate;
+                            const principalPaid = newMonthlyPayment - interest;
+                            remaining -= principalPaid;
+                            schedule.push({
+                                monthlyPayment: newMonthlyPayment,
+                                principal: principalPaid,
+                                interest,
+                                remainingPrincipal: Math.max(remaining, 0)
+                            });
+                        }
+                    } else {
+                        const principalPerMonth = newPrincipal / months;
+                        for (let i = 0; i < months; i++) {
+                            const interest = remaining * monthlyRate;
+                            const payment = principalPerMonth + interest;
+                            remaining -= principalPerMonth;
+                            schedule.push({
+                                monthlyPayment: payment,
+                                principal: principalPerMonth,
+                                interest,
+                                remainingPrincipal: Math.max(remaining, 0)
+                            });
+                        }
+                    }
+                }
+                return schedule;
+            };
+
+            // 计算提前部分还款（原有函数，兼容非组合贷场景）
             const calculatePartialPrepayment = (principal, months, rate, method) => {
                 const prepayAmount = prepaymentAmount.value || 0;
                 const newPrincipal = Math.max(principal - prepayAmount, 0);

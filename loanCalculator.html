@@ -10,8 +10,8 @@
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://cdn.staticfile.net">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
-
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <!-- <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script> -->
     <!-- ECharts CDN (同步加载，onMounted时需要) -->
     <script src="https://cdn.staticfile.net/echarts/6.0.0/echarts.min.js"></script>
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/6.0.0/echarts.min.js"></script> -->
@@ -146,9 +146,19 @@
             left: 20px;
             top: 50%;
             transform: translateY(-50%);
-            font-size: 20px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 500;
             color: #3498db;
+        }
+
+        .price-input .suffix {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            font-weight: 520;
+            color: #dc2666;
         }
 
         /* 首付比例滑块 */
@@ -1035,6 +1045,13 @@
             font-weight: bold;
         }
 
+        .modal-table .total-row td {
+            font-weight: bold;
+            background: #f0f9ff;
+            border-top: 2px solid #3b82f6;
+            color: #1e40af;
+        }
+
         .footer {
             margin-top: 30px;
             text-align: center;
@@ -1085,7 +1102,7 @@
           background: white;
           border-radius: 15px;
           width: 100%;
-          max-width: 500px;
+          max-width: 540px;
           max-height: 90vh;
           display: flex;
           flex-direction: column;
@@ -1094,7 +1111,7 @@
 
         /* 头部（可拖动） */
         .float-header {
-          padding: 20px;
+          padding: 10px;
           border-bottom: 1px solid #eee;
           display: flex;
           justify-content: space-between;
@@ -1127,13 +1144,13 @@
 
         /* 内容区域 */
         .float-content {
-          padding: 20px;
+          padding: 15px;
         }
         /* 或者 */
         .float-body {
           flex: 1;
           overflow-y: auto;
-          padding: 15px;
+          padding: 10px;
           -webkit-overflow-scrolling: touch;
         }
 
@@ -1142,8 +1159,8 @@
         .modification-panel {
           background: white;
           border-radius: 10px;
-          padding: 20px;
-          margin-top: 20px;
+          padding: 15px;
+          margin-top: 18px;
           border: 2px solid #e2e8f0;
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
@@ -1363,8 +1380,8 @@
         .preview-section {
           background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
           border-radius: 12px;
-          padding: 16px;
-          margin-top: 12px;
+          padding: 8px;
+          margin-top: 10px;
         }
 
         .preview-section h4 {
@@ -1682,7 +1699,7 @@
         .preview-table.beautified thead th {
           background: linear-gradient(135deg, #475569 0%, #64748b 100%);
           color: #fff;
-          padding: 12px 10px;
+          padding: 10px 8px;
           text-align: center;
           font-weight: 600;
           border: none;
@@ -1737,7 +1754,7 @@
         .preview-table.beautified tfoot td {
           background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
           color: #fff;
-          padding: 12px 10px;
+          padding: 10px 8px;
           text-align: center;
           font-weight: 600;
         }
@@ -1862,6 +1879,46 @@
           font-size: 12px;
         }
 
+        .footer {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 12px;
+        color: #64748b;
+        padding: 20px 0 10px;
+        border-top: 1px solid rgba(100, 116, 139, 0.3);
+        }
+
+        .footer a {
+            color: #7dd3fc;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+
+        .friend-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            text-align: center;
+        }
+       .friend-links a {
+            display: inline-block;
+            padding: 1px;
+            border-radius: 3px;
+            text-decoration: none;
+            color: #64748b;
+            border: 1px solid #ddd;
+        }
+
+        .friend-links a:hover {
+            background: #f9f9f9;
+            border-color: #3498db;
+            color: #3498db;
+        }
  
         /* 响应式设计 */
         @media (max-width: 768px) {
@@ -1990,8 +2047,13 @@
 
             /* 价格输入的前缀在窄屏适配 */
             .price-input .prefix {
-                left: 12px;
-                font-size: 18px;
+                left: 10px;
+                font-size: 16px;
+            }
+
+            .price-input .suffix {
+                right: 10px;
+                font-size: 16px;
             }
 
             .price-input input {
@@ -2067,8 +2129,13 @@
 
             /* 更小屏时进一步减小前缀内边距 */
             .price-input .prefix {
-                left: 10px;
-                font-size: 16px;
+                left: 8px;
+                font-size: 14px;
+            }
+
+            .price-input .suffix {
+                right: 8px;
+                font-size: 14px;
             }
 
             .price-input input {
@@ -2323,7 +2390,7 @@
                     <div class="input-group">
                         <label class="input-label">总价（元）</label>
                         <div class="price-input">
-                            <input type="number" v-model.number="housePrice" @input="updateCalculations" placeholder="请输入房屋总价" min="0" step="1000">
+                            <input type="number" v-model.number="housePrice" @input="updateCalculations" @blur="handleBlur(housePrice, v => v && v > 0, '房价必须大于0元', prevHousePrice)" placeholder="请输入房屋总价" min="1" step="1000">
                             <span class="prefix">¥</span>
                         </div>
                     </div>
@@ -2398,13 +2465,15 @@
                         <!-- 直接输入模式 -->
                         <div v-if="commercialInputMode === 'direct'">
                             <div style="display:flex; gap:12px; align-items:center;">
-                                <div style="font-size:13px; color:#475569; font-weight:600; min-width:84px;">公积金贷款金额(万元)：</div>
+                                <div style="font-size:13px; color:#475569; font-weight:600; min-width:84px;">公积金贷款金额：</div>
                                 <div class="price-input" style="flex:1;">
-                                    <input type="number" v-model.number="providentAmountWan" @input="updateCalculations" placeholder="输入公积金金额（万）" min="0" step="1">
+                                    <input type="number" v-model.number="providentAmountWan" @input="updateCalculations" @blur="handleProvidentAmountBlur" placeholder="输入公积金金额（万）" min="0" step="1" :max="Math.floor((housePrice - downPaymentAmount) / 10000)">
                                     <span class="prefix">￥</span>
+                                    <span class="suffix">万</span>
                                 </div>
                             </div>
                             <div v-if="providentLoanAmountInputError" class="input-error">{{ providentLoanAmountInputError }}</div>
+                            <div style="font-size:12px; color:#888; margin-top:2px;">最大可贷：{{ Math.floor((housePrice - downPaymentAmount) / 10000) }}万</div>
                             <div style="margin-top:6px; display:flex; gap:12px; align-items:center;">
                                 <div style="font-size:12px; color:#718096;">商业贷款：</div>
                                 <div style="font-weight:700; color:#0f172a;">{{ formatCurrency(commercialAllocatedAmount) }}</div>
@@ -2461,7 +2530,7 @@
                                 {{ loanType === 'commercial' ? '无万位取整' : (loanType === 'provident' ? '差额加入首付' : '差额由商贷吸收') }}
                             </div>
                             <div class="amount-badge" v-if="loanType !== 'commercial'">
-                                <i class="fas fa-check"></i> 公积金整万
+                                <i class="fas fa-check"></i> 公积金取整万
                             </div>
                         </div>
                     </div>
@@ -2474,7 +2543,7 @@
                         </div>
                         <div class="year-input-group">
                             <button type="button" class="year-dec-btn" @click="decreaseYear">-</button>
-                            <input v-model.number="loanYears" type="number" class="year-input" min="1" max="30" @input="updateCalculations">
+                            <input v-model.number="loanYears" type="number" class="year-input" min="1" max="30" @input="updateCalculations" @blur="handleBlur(loanYears, v => v && v >= 1 && v <= 30, '贷款年限需在1-30年之间', prevLoanYears)">
                             <button type="button" class="year-inc-btn" @click="increaseYear">+</button>
                         </div>
                     </div>
@@ -2489,7 +2558,7 @@
                                 </button>
                             </div>
                             <div class="rate-input-wrapper">
-                                <input type="number" v-model.number="commercialRate" class="rate-input" min="0.1" max="10" step="0.01" @input="updateCalculations">
+                                <input type="number" v-model.number="commercialRate" class="rate-input" min="0.01" max="10" step="0.01" @input="updateCalculations" @blur="handleBlur(commercialRate, v => v && v >= 0.01 && v <= 10, '商贷利率需在0.01%-10%之间', prevCommercialRate)">
                                 <span class="rate-suffix">%</span>
                             </div>
                         </div>
@@ -2504,7 +2573,7 @@
                                 </button>
                             </div>
                             <div class="rate-input-wrapper">
-                                <input type="number" v-model.number="providentRate" class="rate-input" min="0.1" max="5" step="0.01" @input="updateCalculations">
+                                <input type="number" v-model.number="providentRate" class="rate-input" min="0.01" max="5" step="0.01" @input="updateCalculations" @blur="handleBlur(providentRate, v => v && v >= 0.01 && v <= 5, '公积金利率需在0.01%-5%之间', prevProvidentRate)">
                                 <span class="rate-suffix">%</span>
                             </div>
                         </div>
@@ -2589,7 +2658,7 @@
                         </div>
                         <div v-if="loanType === 'combined'" style="grid-column:1 / -1; display:flex; align-items:center; gap:12px; margin-bottom:6px;">
                             <div style="font-size:12px; color:#475569; font-weight:600;">期数：</div>
-                            <input type="number" v-model.number="allocationPeriod" :min="1" :max="totalMonths" @input="updateCalculations" style="width:100px; padding:3px; font-weight:700; text-align:center; border-radius:3px; border:1px solid #e2e8f0;">
+                            <input type="number" v-model.number="allocationPeriod" :min="1" :max="totalMonths" @input="updateCalculations" @blur="handleBlur(allocationPeriod, v => v !== null && v !== '' && Number(v) >= 1 && Number(v) <= totalMonths, '期数需在1-' + totalMonths + '之间', prevAllocationPeriod)" style="width:100px; padding:3px; font-weight:700; text-align:center; border-radius:3px; border:1px solid #e2e8f0;">
                             <div style="color:#475569;">/ {{ totalMonths }} 期</div>
                             <div style="margin-left:8px; display:flex; gap:8px; align-items:center;">
                                 <label style="font-size:12px; color:#475569;">查看：</label>
@@ -2631,65 +2700,58 @@
                     <div v-else style="grid-column:1 / -1; text-align:center; padding:24px 0;">
                         <div style="font-size:16px; color:#94a3b8; font-weight:600;">请输入首付金额</div>
                     </div>
-                </div>
-                <!-- 图表区域 -->
-                <div class="input-group chart-container">
-                    <label class="input-label">还款趋势分析</label>
-                    <div id="loan-chart"></div>
-                </div>
-                <!-- 还款明细 -->
-                <div class="repayment-details">
-                    <div class="details-header">
-                        <h3 class="section-title" style="border-bottom: none; padding-bottom: 0; margin: 0;">
-                            <i class="fas fa-list-alt"></i> 还款明细（前12期）
-                        </h3>
-                        <div class="export-buttons">
-                            <!-- 新增：修改选中按钮 -->
-                            <!-- button v-if="selectedRowIndex !== null" 
-                                    class="modify-btn" 
-                                    @click="openModificationFromMain">
-                              <i class="fas fa-edit"></i> 修改选中
-                            </button> -->
-                            <!-- 修改主页的修改按钮 -->
-                            <button v-if="selectedRowIndex !== null" class="modify-btn" @click="openModificationFromMain($event)" @mousedown="console.log('修改按钮被按下')" @mouseup="console.log('修改按钮被释放')">
-                                <i class="fas fa-edit"></i> 修改选中
-                            </button>
-                            <button class="export-btn excel" @click="exportMainTable('excel')">
-                                <i class="fas fa-file-excel"></i> Excel
-                            </button>
-                            <button class="export-btn csv" @click="exportMainTable('csv')">
-                                <i class="fas fa-file-csv"></i> CSV
-                            </button>
-                            <button class="export-btn pdf" @click="exportMainTable('pdf')">
-                                <i class="fas fa-file-pdf"></i> PDF
-                            </button>
-                            <button class="view-more-btn" @click="openDetailModal">
-                                <i class="fas fa-expand-alt"></i> 查看更多
-                            </button>
-                        </div>
+               
+                    <!-- 图表区域 -->
+                    <div class="input-group chart-container">
+                        <label class="input-label">还款趋势分析</label>
+                        <div id="loan-chart"></div>
                     </div>
-                    <div class="repayment-table">
-                        <div class="table-header">
-                            <div>期数</div>
-                            <div>月供</div>
-                            <div>本金</div>
-                            <div>利息</div>
-                            <div>剩余本金</div>
+                    <!-- 还款明细 -->
+                    <div class="repayment-details">
+                        <div class="details-header">
+                            <h3 class="section-title" style="border-bottom: none; padding-bottom: 0; margin: 0;">
+                                <i class="fas fa-list-alt"></i> 还款明细（前12期）
+                            </h3>
+                            <div class="export-buttons">
+                                <!-- 新增：修改选中按钮 -->
+                                <!-- button v-if="selectedRowIndex !== null" 
+                                        class="modify-btn" 
+                                        @click="openModificationFromMain">
+                                  <i class="fas fa-edit"></i> 修改选中
+                                </button> -->
+                                <!-- 修改主页的修改按钮 -->
+                                <button v-if="selectedRowIndex !== null" class="modify-btn" @click="openModificationFromMain($event)" @mousedown="console.log('修改按钮被按下')" @mouseup="console.log('修改按钮被释放')">
+                                    <i class="fas fa-edit"></i> 修改选中
+                                </button>
+                                <button class="export-btn excel" @click="exportMainTable('excel')">
+                                    <i class="fas fa-file-excel"></i> Excel
+                                </button>
+                                <button class="export-btn csv" @click="exportMainTable('csv')">
+                                    <i class="fas fa-file-csv"></i> CSV
+                                </button>
+                                <button class="export-btn pdf" @click="exportMainTable('pdf')">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </button>
+                                <button class="view-more-btn" @click="openDetailModal">
+                                    <i class="fas fa-expand-alt"></i> 查看更多
+                                </button>
+                            </div>
                         </div>
-                        <!-- <div v-for="item in repaymentTable" :key="item.month" class="table-row"> -->
-                        <!--   <div v-for="item in repaymentTable.slice(0, 12)" :key="item.month" class="table-row">
-                            <div>第{{ item.month }}期</div>
-                            <div>{{ formatCurrency(item.monthlyPayment) }}</div>
-                            <div>{{ formatCurrency(item.principal) }}</div>
-                            <div>{{ formatCurrency(item.interest) }}</div>
-                            <div>{{ formatCurrency(item.remainingPrincipal) }}</div>
-                        </div> -->
-                        <div v-for="(item, index) in repaymentTable.slice(0, 12)" :key="item.month" :class="['table-row', { 'selected-row': selectedRowIndex === index }]" @click="selectPeriod(item.month, index, $event)">
-                            <div>第{{ item.month }}期</div>
-                            <div>{{ formatCurrency(item.monthlyPayment) }}</div>
-                            <div>{{ formatCurrency(item.principal) }}</div>
-                            <div>{{ formatCurrency(item.interest) }}</div>
-                            <div>{{ formatCurrency(item.remainingPrincipal) }}</div>
+                        <div class="repayment-table">
+                            <div class="table-header">
+                                <div>期数</div>
+                                <div>月供</div>
+                                <div>本金</div>
+                                <div>利息</div>
+                                <div>剩余本金</div>
+                            </div>
+                            <div v-for="(item, index) in repaymentTable.slice(0, 12)" :key="item.month" :class="['table-row', { 'selected-row': selectedRowIndex === index }]" @click="selectPeriod(item.month, index, $event)">
+                                <div>第{{ item.month }}期</div>
+                                <div>{{ formatCurrency(item.monthlyPayment) }}</div>
+                                <div>{{ formatCurrency(item.principal) }}</div>
+                                <div>{{ formatCurrency(item.interest) }}</div>
+                                <div>{{ formatCurrency(item.remainingPrincipal) }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2707,7 +2769,7 @@
                     <div class="modal-controls">
                         <div class="period-controls">
                             <span>显示期数：</span>
-                            <input type="number" v-model.number="modalPeriod" class="period-input" :min="1" :max="totalMonths" @change="updateModalTable">
+                            <input type="number" v-model.number="modalPeriod" class="period-input" :min="1" :max="totalMonths" @change="updateModalTable" @blur="handleBlur(modalPeriod, v => v !== null && v !== '' && Number(v) >= 1 && Number(v) <= totalMonths, '显示期数需在1-' + totalMonths + '之间', prevModalPeriod)">
                             <span> / {{ totalMonths }} 期</span>
                             <button class="period-btn" @click="showAllPeriods">显示全部</button>
                             <!-- 添加修改按钮 -->
@@ -2747,7 +2809,7 @@
     
 
             <!-- 浮动变更面板 -->
-        <div :class="['modification-float-container', { show: showModificationFloat }]" @click.self="closeModificationFloat">
+        <div :class="['modification-float-container', { show: showModificationFloat }]">
             <div class="modification-float" :style="floatPosition" @click.stop>
                 <!-- 标题栏（可拖动） -->
                 <div class="float-header" @mousedown="startFloatDrag">
@@ -2760,19 +2822,41 @@
                     <div class="independent-option" style="flex:1;">
                         <div class="option-header">
                             <label class="option-checkbox">
-                                <input type="checkbox" v-model="enableRateChange">
+                                <input type="checkbox" v-model="enableRateChange" @change="initRateInputs">
                                 变更利率
                             </label>
                         </div>
                         <div v-if="enableRateChange" class="option-content">
-                            <div class="option-group">
-                                <label class="option-label">当前利率：</label>
-                                <span class="current-value">{{ effectiveRate.toFixed(2) }}%</span>
-                            </div>
-                            <div class="option-group">
-                                <label class="option-label">新利率（%）：</label>
-                                <input v-model.number="newInterestRate" type="number" class="option-input" step="0.01" min="0.1" max="20" :placeholder="'当前：' + effectiveRate.toFixed(2) + '%'">
-                            </div>
+                            <!-- 非组合贷：单一利率 -->
+                            <template v-if="loanType !== 'combined'">
+                                <div class="option-group">
+                                    <label class="option-label">当前利率：</label>
+                                    <span class="current-value">{{ effectiveRate.toFixed(2) }}%</span>
+                                </div>
+                                <div class="option-group">
+                                    <label class="option-label">新利率（%）：</label>
+                                    <input v-model.number="newInterestRate" type="number" class="option-input" step="0.05" min="0.00" max="20" :placeholder="'当前：' + effectiveRate.toFixed(2) + '%'" @blur="handleBlur(newInterestRate, v => v === null || v === '' || (v && v >= 0.01 && v <= 20), '新利率需在0.00%-20%之间', prevNewInterestRate)">
+                                </div>
+                            </template>
+                            <!-- 组合贷：分别设置商贷和公积金利率 -->
+                            <template v-if="loanType === 'combined'">
+                                <div class="option-group">
+                                    <label class="option-label">商贷当前利率：</label>
+                                    <span class="current-value">{{ commercialRate.toFixed(2) }}%</span>
+                                </div>
+                                <div class="option-group">
+                                    <label class="option-label">商贷新利率（%）：</label>
+                                    <input v-model.number="newCommercialRate" type="number" class="option-input" step="0.05" min="0.00" max="20" :placeholder="'当前：' + commercialRate.toFixed(2) + '%'" @blur="handleBlur(newCommercialRate, v => v === null || v === '' || (v && v >= 0.00 && v <= 20), '商贷利率需在0.00%-20%之间', prevNewCommercialRate)">
+                                </div>
+                                <div class="option-group">
+                                    <label class="option-label">公积金当前利率：</label>
+                                    <span class="current-value">{{ providentRate.toFixed(2) }}%</span>
+                                </div>
+                                <div class="option-group">
+                                    <label class="option-label">公积金新利率（%）：</label>
+                                    <input v-model.number="newProvidentRate" type="number" class="option-input" step="0.05" min="0.00" max="20" :placeholder="'当前：' + providentRate.toFixed(2) + '%'" @blur="handleBlur(newProvidentRate, v => v === null || v === '' || (v && v >= 0.00 && v <= 20), '公积金利率需在0.00%-20%之间', prevNewProvidentRate)">
+                                </div>
+                            </template>
                         </div>
                     </div>
                     <!-- 选项2: 变更还款方式 -->
@@ -2827,7 +2911,7 @@
                             <div v-if="prepaymentType === 'partial'" class="option-details">
                                 <div class="option-group" style="margin-top:8px;">
                                     <label class="option-label">还款金额：</label>
-                                    <input v-model.number="prepaymentAmount" type="number" step="1000" class="option-input" :placeholder="'最大可还：' + formatCurrency(getRemainingPrincipalAtSelected())" :max="getRemainingPrincipalAtSelected()" min="0">
+                                    <input v-model.number="prepaymentAmount" type="number" step="1000" class="option-input" :placeholder="'最大可还：' + formatCurrency(getRemainingPrincipalAtSelected())" :max="getRemainingPrincipalAtSelected()" min="0" @blur="handleBlur(prepaymentAmount, v => v !== null && v !== '' && Number(v) >= 0, '提前还款金额不能为负数', prevPrepaymentAmount)">
                                 </div>
                                 <div v-if="loanType === 'combined' && prepaymentType === 'partial' && prepaymentDistribution" class="prepay-dist">
                                     <div class="prepay-dist-row">
@@ -2942,8 +3026,8 @@
                                 </div>
                             </div>
 
-                            <!-- 利率变更详情 -->
-                            <div v-if="enableRateChange && newInterestRate" class="change-card rate-card">
+                            <!-- 利率变更详情（非组合贷） -->
+                            <div v-if="enableRateChange && loanType !== 'combined' && newInterestRate" class="change-card rate-card">
                                 <div class="card-header"><i class="fas fa-percentage"></i> 利率变更</div>
                                 <div class="card-body">
                                     <div class="detail-row">
@@ -2956,6 +3040,44 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- 利率变更详情（组合贷：分开显示） -->
+                            <template v-if="enableRateChange && loanType === 'combined'">
+                                <div v-if="newCommercialRate" class="change-card rate-card">
+                                    <div class="card-header"><i class="fas fa-percentage"></i> 商贷利率变更</div>
+                                    <div class="card-body">
+                                        <div class="detail-row">
+                                            <span class="detail-label">原商贷利率</span>
+                                            <span class="detail-value">{{ commercialRate }}%</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">新商贷利率</span>
+                                            <span class="detail-value rate-new">{{ newCommercialRate }}%</span>
+                                        </div>
+                                        <div v-if="commercialInterestSavings != null" class="detail-row">
+                                            <span class="detail-label">节约利息</span>
+                                            <span class="detail-value" :class="commercialInterestSavings >= 0 ? 'savings-positive' : 'savings-negative'">{{ formatCurrency(Math.abs(commercialInterestSavings)) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-if="newProvidentRate" class="change-card rate-card">
+                                    <div class="card-header"><i class="fas fa-percentage"></i> 公积金利率变更</div>
+                                    <div class="card-body">
+                                        <div class="detail-row">
+                                            <span class="detail-label">原公积金利率</span>
+                                            <span class="detail-value">{{ providentRate }}%</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">新公积金利率</span>
+                                            <span class="detail-value rate-new">{{ newProvidentRate }}%</span>
+                                        </div>
+                                        <div v-if="providentInterestSavings != null" class="detail-row">
+                                            <span class="detail-label">节约利息</span>
+                                            <span class="detail-value" :class="providentInterestSavings >= 0 ? 'savings-positive' : 'savings-negative'">{{ formatCurrency(Math.abs(providentInterestSavings)) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
 
                         <!-- 利息节省信息 -->
@@ -3019,7 +3141,11 @@
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <td colspan="5" class="foot-label">合计（变更部分）</td>
+                                            <td class="foot-label">合计（变更部分）</td>
+                                            <td class="foot-payment">{{ formatCurrency(modifiedSchedule.reduce((s,i)=>s+(i.monthlyPayment||0),0)) }}</td>
+                                            <td class="foot-principal">{{ formatCurrency(modifiedTotalPrincipal) }}</td>
+                                            <td class="foot-interest">{{ formatCurrency(modifiedRemainingInterest) }}</td>
+                                            <td class="foot-remaining">{{ formatCurrency(modifiedSchedule.length > 0 ? modifiedSchedule[modifiedSchedule.length-1].remainingPrincipal : 0) }}</td>
                                             <td class="foot-remark">—</td>
                                         </tr>
                                     </tfoot>
@@ -3045,11 +3171,104 @@
             </div>
         </div>
     </div>
+    <div class="footer">
+        <p>k © 2026 | 基于Vue.js开发 | 数据存储于浏览器本地</p>
+        <div class="friend-links">
+                <h3 style="color: #989898;margin-bottom: 2px;">友情链接：</h3><a href="https://github.com/owenyk/brain-games-pwa">项目开源地址</a>
+        </div>
+        <script>
+        // 在游戏界面右下角添加浮动切换按钮
+        document.addEventListener('DOMContentLoaded', function() {
+            // 创建浮动按钮容器
+            const floatContainer = document.createElement('div');
+            floatContainer.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  `;
+
+            // 创建返回主页按钮
+            const homeBtn = document.createElement('a');
+            homeBtn.href = '/';
+            homeBtn.innerHTML = '🏠';
+            homeBtn.title = '返回主页';
+            homeBtn.style.cssText = `
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    color: white;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+  `;
+            homeBtn.onmouseover = () => {
+                homeBtn.style.transform = 'scale(1.1)';
+                homeBtn.style.boxShadow = '0 6px 12px rgba(59, 130, 246, 0.5)';
+            };
+            homeBtn.onmouseout = () => {
+                homeBtn.style.transform = 'scale(1)';
+                homeBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+            };
+
+            // 创建切换到华容道按钮
+            const switchBtn = document.createElement('a');
+            switchBtn.href = '/klotski-v3';
+            switchBtn.innerHTML = '🧩';
+            switchBtn.title = '玩数字华容道';
+            switchBtn.style.cssText = `
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: white;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+  `;
+            switchBtn.onmouseover = () => {
+                switchBtn.style.transform = 'scale(1.1)';
+                switchBtn.style.boxShadow = '0 6px 12px rgba(16, 185, 129, 0.5)';
+            };
+            switchBtn.onmouseout = () => {
+                switchBtn.style.transform = 'scale(1)';
+                switchBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+            };
+
+            // 添加到页面
+            floatContainer.appendChild(homeBtn);
+            floatContainer.appendChild(switchBtn);
+            document.body.appendChild(floatContainer);
+
+            // 可调整z-index避免被覆盖
+            const gameHeader = document.querySelector('.game-header, .header, .sudoku-header');
+            if (gameHeader) {
+                const zIndex = parseInt(window.getComputedStyle(gameHeader).zIndex);
+                if (zIndex > 1000) {
+                    document.getElementById('game-nav').style.zIndex = (zIndex + 100).toString();
+                    floatContainer.style.zIndex = (zIndex + 100).toString();
+                }
+            }
+        });
+        </script>
+    </div>
     
 
 
     <script>
-    const { createApp, ref, computed, watch, onMounted } = Vue;
+    const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
 
     createApp({
         setup() {
@@ -3084,7 +3303,7 @@
             };
             const loanYears = ref(20);
             const loanType = ref('provident');
-            const commercialRate = ref(3.1);
+            const commercialRate = ref(3.05);
             const providentRate = ref(2.6);
             const repaymentMethod = ref('equalPrincipalInterest');
             const showDetailedModal = ref(false);
@@ -3096,11 +3315,56 @@
             const selectedRowIndex = ref(null);
             const enableRateChange = ref(false);
             const newInterestRate = ref(null);
+            const newCommercialRate = ref(null);  // 组合贷商贷新利率
+            const newProvidentRate = ref(null);   // 组合贷公积金新利率
+
+            // 初始化利率输入框的公共逻辑
+            const initRateInputs = () => {
+                if (!enableRateChange.value) return;
+                const cr = commercialRate.value;
+                const pr = providentRate.value;
+                const er = effectiveRate.value;
+                if (loanType.value === 'combined') {
+                    if (!newCommercialRate.value && cr != null) {
+                        newCommercialRate.value = parseFloat(cr.toFixed(2));
+                    }
+                    if (!newProvidentRate.value && pr != null) {
+                        newProvidentRate.value = parseFloat(pr.toFixed(2));
+                    }
+                } else {
+                    if (!newInterestRate.value && er != null) {
+                        newInterestRate.value = parseFloat(er.toFixed(2));
+                    }
+                }
+            };
+
+            // 当勾选"变更利率"时，自动以当前利率填入新利率输入框
+            watch(enableRateChange, (newVal) => {
+                if (newVal) initRateInputs();
+            });
+
+            // 当切换到组合贷模式时，如果已经勾选了变更利率，也要初始化
+            watch(loanType, (newType) => {
+                if (newType === 'combined' && enableRateChange.value) {
+                    if (!newCommercialRate.value) {
+                        const cr = commercialRate.value;
+                        if (cr != null) newCommercialRate.value = parseFloat(cr.toFixed(2));
+                    }
+                    if (!newProvidentRate.value) {
+                        const pr = providentRate.value;
+                        if (pr != null) newProvidentRate.value = parseFloat(pr.toFixed(2));
+                    }
+                }
+            });
+
             const modificationType = ref('');
             const newRepaymentMethod = ref('');
             const prepaymentAmount = ref(20000);
             const prepaymentOption = ref('reduceTerm');
             const modifiedSchedule = ref([]);
+            // 组合贷：分别跟踪商贷和公积金的已修改利息（用于分别计算节约利息）
+            const commercialModifiedInterest = ref(0);
+            const providentModifiedInterest = ref(0);
             const toastMsg   = ref('');
             const toastVisible = ref(false);
             const toastType   = ref('warning');
@@ -3114,6 +3378,56 @@
                 toastVisible.value = true;
                 setTimeout(() => { toastVisible.value = false; }, 3000);
             };
+
+            // ============================================================
+            // 失焦自动复原：上次有效值 shadow refs
+            // ============================================================
+            const prevHousePrice       = ref(housePrice.value);
+            const prevLoanYears        = ref(loanYears.value);
+            const prevCommercialRate   = ref(commercialRate.value);
+            const prevProvidentRate    = ref(providentRate.value);
+            const prevNewInterestRate  = ref(newInterestRate.value);  // null → 允许 null 为有效值
+            const prevNewCommercialRate = ref(newCommercialRate.value);  // 组合贷商贷新利率
+            const prevNewProvidentRate  = ref(newProvidentRate.value);  // 组合贷公积金新利率
+            const prevProvidentAmountInput = ref(providentLoanAmountInput.value);  // 公积金输入（万单位）上一次有效值
+            const prevPrepaymentAmount = ref(prepaymentAmount.value);
+            const prevModalPeriod      = ref(modalPeriod.value);
+
+            // 失焦时校验：无效则复原上次有效值并提示
+            const handleBlur = (ref, isValidFn, errMsg, prevRef) => {
+                if (ref == null) return;
+                const v = ref.value;
+                if (!isValidFn(v)) {
+                    ref.value = prevRef.value;
+                    showToast(errMsg, 'warning');
+                    try { updateCalculations(); } catch(e) {}
+                } else {
+                    prevRef.value = v;
+                }
+            };
+
+            // 公积金输入（万单位）失焦校验：无效则复原
+            const handleProvidentAmountBlur = () => {
+                const wanVal = providentAmountWan.value;
+                if (wanVal === null || wanVal === '' || isNaN(wanVal)) return;
+                const provVal = parseFloat(wanVal) * 10000;  // 转为元
+                const maxProv = optimizedLoanAmount.value;
+                const isValid = !isNaN(provVal) && provVal > 0 && provVal <= maxProv && provVal % 10000 === 0;
+                if (!isValid) {
+                    providentAmountWan.value = prevProvidentAmountInput.value / 10000;  // 复原（元转万）
+                    showToast('公积金金额无效，已复原', 'warning');
+                    try { updateCalculations(); } catch(e) {}
+                } else {
+                    prevProvidentAmountInput.value = provVal;  // 确认有效，更新快照
+                }
+            };
+
+            // 聚焦时：保存当前值（作为候选有效值）
+            const handleFocus = (prevRef, currentRef) => {
+                prevRef.value = currentRef.value;
+            };
+
+            // 各字段快捷校验函数（直接内联到模板 @blur 中更简洁）
 
             // // 打开详细弹窗（带选中期数检查）
             // const openDetailModal = () => {
@@ -3220,8 +3534,8 @@
 
 
             // 常用利率选项
-            const commercialRates = ref([3.05, 3.8, 4.2, 4.9]);
-            const providentRates = ref([2.6, 2.85, 3.1, 3.25]);
+            const commercialRates = ref([2.8, 2.95, 3.05, 3.45, 4.2, 4.9]);
+            const providentRates = ref([2.1, 2.5, 2.6, 2.85, 3.1, 3.25]);
 
             // 组合贷比例（商业部分占比的分子，范围 1-9，默认 2 表示 2:8）
             const combinedCommercialPart = ref(2);
@@ -3329,9 +3643,10 @@
                     if (provVal % 10000 !== 0) {
                         providentLoanAmountInputError.value = '请输入整数万（例：30）';
                     } else if (provVal > maxProv) {
-                        providentLoanAmountInputError.value = `公积金不能超过贷款总额（¥${formatCurrency(maxProv)}）`;
+                        providentLoanAmountInputError.value = `公积金不能超过最大可贷额度（${Math.floor(maxProv / 10000)}万）`;
                     } else {
                         providentLoanAmountInputError.value = '';
+                        prevProvidentAmountInput.value = provVal;  // 有效值，更新快照
                     }
                 } else {
                     providentLoanAmountInputError.value = '';
@@ -3340,6 +3655,19 @@
 
             const downPaymentAmount = computed(() => {
                 return housePrice.value * (downPaymentPercent.value / 100);
+            });
+
+            // 首付变动时：公积金最大可贷额度变化，自动取最接近有效值
+            watch(downPaymentAmount, (newDownPayment) => {
+                if (loanType.value !== 'combined' || commercialInputMode.value !== 'direct') return;
+                const maxWan = Math.floor((housePrice.value - newDownPayment) / 10000);
+                const currentWan = providentAmountWan.value;
+                if (currentWan !== null && currentWan !== '' && !isNaN(currentWan) && currentWan > maxWan) {
+                    providentAmountWan.value = maxWan;
+                    providentLoanAmountInput.value = maxWan * 10000;
+                    showToast(`首付已调整，公积金自动调整为${maxWan}万`, 'info');
+                    try { updateCalculations(); } catch(e) {}
+                }
             });
 
             const originalLoanAmount = computed(() => {
@@ -3510,7 +3838,14 @@
 
             // 是否有任何实际变更（检查是否真正有改动）
             const hasAnyModification = computed(() => {
-                const rateChanged = enableRateChange.value && newInterestRate.value && parseFloat(newInterestRate.value) !== effectiveRate.value;
+                // 组合贷分别检查商贷和公积金利率；非组合贷检查单一利率
+                // 只要填写了新利率（不管是否与原利率相同）就算变更
+                const rateChangedForCombined = loanType.value === 'combined' &&
+                    ((newCommercialRate.value !== null && newCommercialRate.value !== '') ||
+                     (newProvidentRate.value !== null && newProvidentRate.value !== ''));
+                const rateChangedForSingle = loanType.value !== 'combined' &&
+                    newInterestRate.value !== null && newInterestRate.value !== '';
+                const rateChanged = enableRateChange.value && (rateChangedForCombined || rateChangedForSingle);
                 const methodChanged = enableMethodChange.value && newRepaymentMethod.value && newRepaymentMethod.value !== repaymentMethod.value;
                 // full类型：只要勾选就有意义（全部结清）；partial类型：必须填了金额才算有效变更
                 const prepaymentChanged = enablePrepayment.value &&
@@ -3576,9 +3911,92 @@
                 return modifiedSchedule.value.reduce((sum, item) => sum + (item.interest || 0), 0);
             });
 
+            // 变更后方案累计已还本金
+            const modifiedTotalPrincipal = computed(() => {
+                if (!modifiedSchedule.value || modifiedSchedule.value.length === 0) return 0;
+                return modifiedSchedule.value.reduce((sum, item) => sum + (item.principal || 0), 0);
+            });
+
             // 累计节约利息（正值=省钱，负值=多付）
             const interestSavings = computed(() => {
+                // 组合贷：直接用分项节约之和，避免 effectiveRate 加权平均导致的不一致
+                if (loanType.value === 'combined') {
+                    const comm = commercialInterestSavings.value;
+                    const prov = providentInterestSavings.value;
+                    if (comm == null || prov == null) return 0;
+                    return comm + prov;
+                }
                 return originalRemainingInterest.value - modifiedRemainingInterest.value;
+            });
+
+            // 组合贷：商贷节约利息（分别计算）
+            const commercialOriginalInterest = computed(() => {
+                if (!selectedPeriod.value || loanType.value !== 'combined') return null;
+                const remainingMonths = totalMonths.value - selectedPeriod.value;
+                if (remainingMonths <= 0) return null;
+                // 使用与previewModification相同的剩余本金计算方式
+                const remainingPrincipal = getRemainingPrincipalAtSelected();
+                const commercialShare = combinedCommercialPart.value / 10;
+                const commPrincipal = remainingPrincipal * commercialShare;
+                if (commPrincipal <= 0) return null;
+                const commRate = commercialRate.value;
+                const method = repaymentMethod.value;
+                if (method === 'equalPrincipalInterest') {
+                    const monthlyPayment = calculateEqualPrincipalInterest(commPrincipal, commRate, remainingMonths / 12);
+                    return monthlyPayment * remainingMonths - commPrincipal;
+                } else {
+                    const monthlyPrincipal = commPrincipal / remainingMonths;
+                    let totalInterest = 0;
+                    let remaining = commPrincipal;
+                    const monthlyRate = commRate / 100 / 12;
+                    for (let i = 0; i < remainingMonths; i++) {
+                        totalInterest += remaining * monthlyRate;
+                        remaining -= monthlyPrincipal;
+                    }
+                    return totalInterest;
+                }
+            });
+
+            // 组合贷：公积金节约利息（分别计算）
+            const providentOriginalInterest = computed(() => {
+                if (!selectedPeriod.value || loanType.value !== 'combined') return null;
+                const remainingMonths = totalMonths.value - selectedPeriod.value;
+                if (remainingMonths <= 0) return null;
+                // 使用与previewModification相同的剩余本金计算方式
+                const remainingPrincipal = getRemainingPrincipalAtSelected();
+                const providentShare = (10 - combinedCommercialPart.value) / 10;
+                const provPrincipal = remainingPrincipal * providentShare;
+                if (provPrincipal <= 0) return null;
+                const provRate = providentRate.value;
+                const method = repaymentMethod.value;
+                if (method === 'equalPrincipalInterest') {
+                    const monthlyPayment = calculateEqualPrincipalInterest(provPrincipal, provRate, remainingMonths / 12);
+                    return monthlyPayment * remainingMonths - provPrincipal;
+                } else {
+                    const monthlyPrincipal = provPrincipal / remainingMonths;
+                    let totalInterest = 0;
+                    let remaining = provPrincipal;
+                    const monthlyRate = provRate / 100 / 12;
+                    for (let i = 0; i < remainingMonths; i++) {
+                        totalInterest += remaining * monthlyRate;
+                        remaining -= monthlyPrincipal;
+                    }
+                    return totalInterest;
+                }
+            });
+
+            // 组合贷：商贷节约利息
+            const commercialInterestSavings = computed(() => {
+                if (loanType.value !== 'combined') return null;
+                if (commercialOriginalInterest.value == null) return null;
+                return commercialOriginalInterest.value - commercialModifiedInterest.value;
+            });
+
+            // 组合贷：公积金节约利息
+            const providentInterestSavings = computed(() => {
+                if (loanType.value !== 'combined') return null;
+                if (providentOriginalInterest.value == null) return null;
+                return providentOriginalInterest.value - providentModifiedInterest.value;
             });
 
             // 节约期数（期数不变时不显示；期数减少时显示正值）
@@ -3662,7 +4080,11 @@
                     })();
 
                 // 计算新方案的月供和总利息（新利率 + 新方式）
-                const newRate = enableRateChange.value && newInterestRate.value ? newInterestRate.value : effectiveRate.value;
+                // 组合贷：用商贷占比加权平均新利率；非组合贷：单一利率
+                const combinedNewRate = loanType.value === 'combined' && newCommercialRate.value && newProvidentRate.value
+                    ? newCommercialRate.value * combinedCommercialPart + newProvidentRate.value * (1 - combinedCommercialPart)
+                    : (enableRateChange.value && newInterestRate.value ? newInterestRate.value : effectiveRate.value);
+                const newRate = combinedNewRate;
                 const newMonthlyPayment = newMethod === 'equalPrincipalInterest'
                     ? calculateEqualPrincipalInterest(principalForCalc, newRate, remainingMonths / 12)
                     : principalForCalc / remainingMonths;
@@ -3701,12 +4123,16 @@
                     enableMethodChange: enableMethodChange.value,
                     enablePrepayment: enablePrepayment.value,
                     newInterestRate: newInterestRate.value,
+                    newCommercialRate: newCommercialRate.value,  // 组合贷商贷新利率
+                    newProvidentRate: newProvidentRate.value,  // 组合贷公积金新利率
                     newRepaymentMethod: newRepaymentMethod.value,
                     effectiveRate: effectiveRate.value,
                     remainingPrincipal: getRemainingPrincipalAtSelected(),
                     remainingMonths: totalMonths.value - (selectedPeriod.value || 0),
                     frozenPaid: frozenPaidInfo.value,
                     interestSavings: interestSavings.value,
+                    commercialInterestSavings: commercialInterestSavings.value,
+                    providentInterestSavings: providentInterestSavings.value,
                     originalRemainingInterest: originalRemainingInterest.value,
                     modifiedRemainingInterest: modifiedRemainingInterest.value,
                     methodChangeDetails: methodChangeDetails.value
@@ -4036,6 +4462,7 @@
 
             // 分配查看期数（仅组合贷时使用）
             const allocationPeriod = ref(1);
+            const prevAllocationPeriod = ref(allocationPeriod.value);  // 延迟定义：因 allocationPeriod 原生定义在后面
             const allocationMode = ref('single'); // 'single' or 'cumulative'
 
             const commercialMonthData = computed(() => {
@@ -4098,9 +4525,13 @@
             const detailedRepaymentTableHtml = computed(() => {
                 const table = detailedRepaymentTable.value;
                 if (!table || table.length === 0) return '';
+                const totalPrincipal = table.reduce((s, i) => s + (i.principal || 0), 0);
+                const totalInterest = table.reduce((s, i) => s + (i.interest || 0), 0);
+                const totalPayment = table.reduce((s, i) => s + (i.monthlyPayment || 0), 0);
+                const lastRemaining = table.length > 0 ? (table[table.length - 1].remainingPrincipal || 0) : 0;
                 const rows = table.map((item, index) => {
                     const sel = selectedModalRowIndex.value === index && isFromModal.value;
-                    return `<tr class="${sel ? 'selected-row' : ''}" onclick="window.__selectPeriodFromModal(${item.month},${index})">
+                    return `<tr class="${sel ? 'selected-row' : ''}" data-month="${item.month}" data-index="${index}" onclick="window.__selectPeriodFromModal(${item.month},${index})">
                         <td>第${item.month}期</td>
                         <td>${formatCurrency(item.monthlyPayment)}</td>
                         <td>${formatCurrency(item.principal)}</td>
@@ -4108,7 +4539,14 @@
                         <td>${formatCurrency(item.remainingPrincipal)}</td>
                     </tr>`;
                 }).join('');
-                return rows;
+                const footer = `<tr class="total-row">
+                    <td>合计</td>
+                    <td>${formatCurrency(totalPayment)}</td>
+                    <td>${formatCurrency(totalPrincipal)}</td>
+                    <td>${formatCurrency(totalInterest)}</td>
+                    <td>${formatCurrency(lastRemaining)}</td>
+                </tr>`;
+                return rows + footer;
             });
 
             // 格式化金额
@@ -5212,8 +5650,13 @@
                     return;
                 }
 
-                // 检查是否有实际变更
-                const rateChanged = enableRateChange.value && newInterestRate.value && parseFloat(newInterestRate.value) !== effectiveRate.value;
+                // 检查是否有实际变更（组合贷分别检查商贷和公积金利率）
+                const rateChangedForCombined = loanType.value === 'combined' &&
+                    ((newCommercialRate.value && parseFloat(newCommercialRate.value) !== commercialRate.value) ||
+                     (newProvidentRate.value && parseFloat(newProvidentRate.value) !== providentRate.value));
+                const rateChangedForSingle = loanType.value !== 'combined' &&
+                    newInterestRate.value && parseFloat(newInterestRate.value) !== effectiveRate.value;
+                const rateChanged = enableRateChange.value && (rateChangedForCombined || rateChangedForSingle);
                 const methodChanged = enableMethodChange.value && newRepaymentMethod.value && newRepaymentMethod.value !== repaymentMethod.value;
                 const prepaymentChanged = enablePrepayment.value && (prepaymentType.value === 'full' || prepaymentAmount.value > 0);
 
@@ -5269,6 +5712,8 @@
                         const commFull = calculatePartialPrepaymentForLoan(commRemaining, remainingMonths, commercialRate.value, useMethod, 0, commRemaining);
                         const provFull = calculatePartialPrepaymentForLoan(provRemaining, remainingMonths, providentRate.value, useMethod, 0, provRemaining);
                         newSchedule = mergeLoanSchedules(commFull, provFull);
+                        commercialModifiedInterest.value = commFull.reduce((s, i) => s + (i.interest || 0), 0);
+                        providentModifiedInterest.value = provFull.reduce((s, i) => s + (i.interest || 0), 0);
                     } else if (prepaymentChanged && prepaymentType.value === 'partial') {
                         // 提前部分还款：公积金整万，其余给商贷
                         const commPrepay = dist ? dist.commercialPrepay : 0;
@@ -5278,15 +5723,27 @@
                         const commSchedule = calculatePartialPrepaymentForLoan(commRemaining, remainingMonths, commercialRate.value, useMethod, commOriginalMonthlyPayment, commPrepay);
                         const provSchedule = calculatePartialPrepaymentForLoan(provRemaining, remainingMonths, providentRate.value, useMethod, provOriginalMonthlyPayment, provPrepay);
                         newSchedule = mergeLoanSchedules(commSchedule, provSchedule);
+                        commercialModifiedInterest.value = commSchedule.reduce((s, i) => s + (i.interest || 0), 0);
+                        providentModifiedInterest.value = provSchedule.reduce((s, i) => s + (i.interest || 0), 0);
                     } else if (rateChanged || methodChanged) {
                         // 仅利率变更或还款方式变更
                         const commOriginalMonthlyPayment = getMonthlyPaymentAtPeriod(commercialAllocatedAmount.value, commercialRate.value, loanYears.value, selectedPeriod.value, useMethod);
                         const provOriginalMonthlyPayment = getMonthlyPaymentAtPeriod(providentAllocatedAmount.value, providentRate.value, loanYears.value, selectedPeriod.value, useMethod);
-                        const commRate = rateChanged ? newInterestRate.value : commercialRate.value;
-                        const provRate = rateChanged ? newInterestRate.value : providentRate.value;
+                        // 组合贷用独立利率，非组合贷用单一利率
+                        const commNewRate = loanType.value === 'combined' ? (newCommercialRate.value || commercialRate.value) : (rateChanged ? newInterestRate.value : commercialRate.value);
+                        const provNewRate = loanType.value === 'combined' ? (newProvidentRate.value || providentRate.value) : (rateChanged ? newInterestRate.value : providentRate.value);
+                        const commRate = commNewRate;
+                        const provRate = provNewRate;
+                        // 用原始利率计算 originalRemainingInterest（用于 interestSavings = original - modified）
+                        const commScheduleOrig = calculatePartialPrepaymentForLoan(commRemaining, remainingMonths, commercialRate.value, useMethod, commOriginalMonthlyPayment, 0);
+                        const provScheduleOrig = calculatePartialPrepaymentForLoan(provRemaining, remainingMonths, providentRate.value, useMethod, provOriginalMonthlyPayment, 0);
+                        originalRemainingInterest.value = commScheduleOrig.reduce((s, i) => s + (i.interest || 0), 0) + provScheduleOrig.reduce((s, i) => s + (i.interest || 0), 0);
+                        // 用新利率计算 modified schedule
                         const commSchedule = calculatePartialPrepaymentForLoan(commRemaining, remainingMonths, commRate, useMethod, commOriginalMonthlyPayment, 0);
                         const provSchedule = calculatePartialPrepaymentForLoan(provRemaining, remainingMonths, provRate, useMethod, provOriginalMonthlyPayment, 0);
                         newSchedule = mergeLoanSchedules(commSchedule, provSchedule);
+                        commercialModifiedInterest.value = commSchedule.reduce((s, i) => s + (i.interest || 0), 0);
+                        providentModifiedInterest.value = provSchedule.reduce((s, i) => s + (i.interest || 0), 0);
                     }
                 } else {
                     // 非组合贷
@@ -5299,14 +5756,30 @@
                     } else if (rateChanged || methodChanged) {
                         newSchedule = calculateScheduleWithModifications(remainingPrincipal, remainingMonths, useRate, useMethod);
                     }
+                    commercialModifiedInterest.value = 0;
+                    providentModifiedInterest.value = 0;
                 }
 
                 // 构建备注（记录本次变动的项目）
                 const parts = [];
-                if (rateChanged)    parts.push('降利率至' + newInterestRate.value + '%');
+                if (rateChanged) {
+                    if (loanType.value === 'combined') {
+                        if (newCommercialRate.value) {
+                            const up = parseFloat(newCommercialRate.value) > commercialRate.value;
+                            parts.push('商贷' + (up ? '升至' : '降至') + newCommercialRate.value + '%');
+                        }
+                        if (newProvidentRate.value) {
+                            const up = parseFloat(newProvidentRate.value) > providentRate.value;
+                            parts.push('公积金' + (up ? '升至' : '降至') + newProvidentRate.value + '%');
+                        }
+                    } else {
+                        const up = parseFloat(newInterestRate.value) > effectiveRate.value;
+                        parts.push((up ? '升' : '降') + '利率至' + newInterestRate.value + '%');
+                    }
+                }
                 if (methodChanged) parts.push('改' + (newRepaymentMethod.value === 'equalPrincipalInterest' ? '等额本息' : '等额本金'));
-                if (prepaymentType.value === 'full')     parts.push('提前结清');
-                else if (prepaymentType.value === 'partial' && prepaymentAmount.value > 0) {
+                if (prepaymentChanged && prepaymentType.value === 'full')     parts.push('提前结清');
+                else if (prepaymentChanged && prepaymentType.value === 'partial' && prepaymentAmount.value > 0) {
                     if (loanType.value === 'combined' && prepaymentDistribution.value) {
                         const d = prepaymentDistribution.value;
                         if (d.providentPrepay > 0) parts.push('公积金提前还' + formatCurrency(d.providentPrepay));
@@ -5420,8 +5893,40 @@
                     }];
                 }
 
-                if (prepaymentOption.value === 'reduceTerm') {
-                    // 月供不变，用对数公式按剩余本金和原月供重新计算期数，期数缩短
+                // 仅变更利率/还款方式（prepayAmount=0）：保持期数不变，只用新利率重新计算月供
+                if (prepayAmount === 0) {
+                    if (method === 'equalPrincipalInterest') {
+                        const monthlyPayment = calculateEqualPrincipalInterest(newPrincipal, rate, months / 12);
+                        for (let i = 0; i < months; i++) {
+                            const interest = remaining * monthlyRate;
+                            const principalPaid = monthlyPayment - interest;
+                            remaining -= principalPaid;
+                            schedule.push({
+                                monthlyPayment,
+                                principal: principalPaid,
+                                interest,
+                                remainingPrincipal: Math.max(remaining, 0)
+                            });
+                        }
+                    } else {
+                        const principalPerMonth = newPrincipal / months;
+                        for (let i = 0; i < months; i++) {
+                            const interest = remaining * monthlyRate;
+                            const principalPaid = principalPerMonth;
+                            remaining -= principalPaid;
+                            schedule.push({
+                                monthlyPayment: principalPaid + interest,
+                                principal: principalPaid,
+                                interest,
+                                remainingPrincipal: Math.max(remaining, 0)
+                            });
+                        }
+                    }
+                    return schedule;
+                }
+
+                if (prepaymentOption.value === 'reduceTerm' && prepayAmount > 0) {
+                    // 月供不变，用对数公式按剩余本金和原月供重新计算期数，期数缩短（仅当有实际提前还款金额时才缩期）
                     if (method === 'equalPrincipalInterest') {
                         const monthlyR = monthlyRate;
                         if (originalMonthlyPayment > 0 && monthlyR > 0) {
@@ -5655,46 +6160,6 @@
                 }];
             };
 
-            // // 预览变更
-            // const previewModification = () => {
-            //   if (!selectedPeriod.value) return;
-
-            //   const remainingPrincipal = getRemainingPrincipalAtSelected();
-            //   const remainingMonths = totalMonths.value - selectedPeriod.value;
-
-            //   // 确定使用的利率
-            //   const useRate = enableRateChange.value && newInterestRate.value 
-            //     ? newInterestRate.value 
-            //     : effectiveRate.value;
-
-            //   // 确定使用的还款方式
-            //   const useMethod = modificationType.value === 'changeMethod' 
-            //     ? (newRepaymentMethod.value || repaymentMethod.value)
-            //     : repaymentMethod.value;
-
-            //   let newSchedule = [];
-
-            //   switch (modificationType.value) {
-            //     case 'fullPrepayment':
-            //       newSchedule = calculateFullPrepayment();
-            //       break;
-
-            //     case 'partialPrepayment':
-            //       newSchedule = calculatePartialPrepayment(remainingPrincipal, remainingMonths, useRate, useMethod);
-            //       break;
-
-            //     default:
-            //       // 仅利率变更或还款方式变更
-            //       newSchedule = calculateScheduleWithModifications(remainingPrincipal, remainingMonths, useRate, useMethod);
-            //       break;
-            //   }
-
-            //   // 从选中期的下一期开始
-            //   modifiedSchedule.value = newSchedule.map((item, index) => ({
-            //     ...item,
-            //     month: selectedPeriod.value + index + 1
-            //   }));
-            // };
 
             // 导出修改后的还款计划
             const exportModifiedSchedule = () => {
@@ -5912,6 +6377,12 @@
             const selectPeriodFromModal = (month, index) => {
                 console.log('从模态框选择期数:', month, '索引:', index);
 
+                // 阻止事件冒泡，防止触发 document click outside 检测
+                const evt = window.event;
+                if (evt) {
+                    evt.stopPropagation();
+                }
+
                 // 冻结检查：预览后不能再选择变更前的期数
                 if (isFrozen.value && selectedPeriod.value !== null && month <= selectedPeriod.value) {
                     alert('已生成变更计划，前期不可再选！');
@@ -5924,6 +6395,10 @@
 
                 if (enableRateChange.value && !newInterestRate.value) {
                     newInterestRate.value = parseFloat(effectiveRate.value.toFixed(2));
+                }
+                if (enableRateChange.value && loanType.value === 'combined' && !newCommercialRate.value) {
+                    newCommercialRate.value = parseFloat(commercialRate.value.toFixed(2));
+                    newProvidentRate.value = parseFloat(providentRate.value.toFixed(2));
                 }
 
                 // 自动打开修改面板
@@ -5959,37 +6434,15 @@
                 if (enableRateChange.value && !newInterestRate.value) {
                     newInterestRate.value = parseFloat(effectiveRate.value.toFixed(2));
                 }
+                if (enableRateChange.value && loanType.value === 'combined' && !newCommercialRate.value) {
+                    newCommercialRate.value = parseFloat(commercialRate.value.toFixed(2));
+                    newProvidentRate.value = parseFloat(providentRate.value.toFixed(2));
+                }
 
                 // 自动打开修改面板
                 openModificationFromMain(event);
             };
 
-            // 4. 从主页打开修改面板的函数
-            // const openModificationFromMain = () => {
-            //   if (selectedRowIndex.value !== null) {
-            //     console.log('从主页打开修改面板，选中期数:', selectedPeriod.value);
-
-            //     // 使用setTimeout确保DOM已更新
-            //     setTimeout(() => {
-            //       const tableRows = document.querySelectorAll('.table-row');
-            //       if (tableRows[selectedRowIndex.value]) {
-            //         const rect = tableRows[selectedRowIndex.value].getBoundingClientRect();
-            //         floatPosition.value = {
-            //           top: (rect.top + window.scrollY) + 'px',
-            //           left: (rect.right + 10) + 'px'
-            //         };
-            //       } else {
-            //         floatPosition.value = {
-            //           top: '100px',
-            //           right: '20px'
-            //         };
-            //       }
-
-            //       isFromModal.value = false;
-            //       showModificationFloat.value = true;
-            //     }, 50);
-            //   }
-            // };
 
             const openModificationFromMain = (event) => {
                 console.group('=== 调试：openModificationFromMain 被调用 ===');
@@ -6018,32 +6471,22 @@
                 }
 
                 console.log('5. 开始打开浮动面板...');
-
-                // 使用 setTimeout 确保 DOM 已更新
+                isFromModal.value = false;
+                showModificationFloat.value = true;
+                // 打开后注册 document click 监听（capture 阶段，确保先于其他 bubble 处理）
                 setTimeout(() => {
-                    console.log('6. 设置浮动面板位置');
-
-                    // 不需要设置位置，让flexbox居中
-                    floatPosition.value = {};
-
-                    isFromModal.value = false;
-                    showModificationFloat.value = true;
-
-                    console.log('7. 浮动面板状态已设置为 true');
-                    console.log('8. 最终状态检查:');
-                    console.log('   - showModificationFloat:', showModificationFloat.value);
-                    console.log('   - isFromModal:', isFromModal.value);
-                    console.log('   - floatPosition:', floatPosition.value);
-
-                    // 强制检查浮动面板是否在DOM中
-                    setTimeout(() => {
-                        const floatPanel = document.querySelector('.modification-float');
-                        console.log('9. DOM中浮动面板:', floatPanel);
-                        console.log('10. 浮动面板样式:', floatPanel ?.style ?.display);
-                    }, 100);
-
-                    console.groupEnd();
+                    document.addEventListener('click', handleDocumentClick, true);
                 }, 0);
+            };
+
+            // 点击浮层外部关闭浮层（仅在浮层打开时生效）
+            const handleDocumentClick = (e) => {
+                if (!showModificationFloat.value) return;
+                const container = document.querySelector('.modification-float-container');
+                const panel = document.querySelector('.modification-float');
+                if (container && panel && !container.contains(e.target) && !panel.contains(e.target)) {
+                    closeModificationFloat();
+                }
             };
 
             // 添加关闭浮动面板的函数
@@ -6051,8 +6494,8 @@
                 if (e) {
                     e.stopPropagation();
                 }
-                console.log('关闭浮动修改面板, isFromModal=', isFromModal.value);
                 showModificationFloat.value = false;
+                document.removeEventListener('click', handleDocumentClick, true);
 
                 // 只清结构性状态，保留用户的输入值（利率/还款方式/提前还款金额等）
                 selectedPeriod.value = null;
@@ -6072,6 +6515,9 @@
                     }
                 });
             });
+
+            // 将 selectPeriodFromModal 暴露到 window（onclick 直接调用，setup 同步执行时已可访问）
+            window.__selectPeriodFromModal = selectPeriodFromModal;
 
             return {
                 housePrice,
@@ -6150,6 +6596,11 @@
                 enableMethodChange,
                 enablePrepayment,
                 newInterestRate,
+                newCommercialRate,
+                newProvidentRate,
+                prevNewInterestRate,
+                prevNewCommercialRate,
+                prevNewProvidentRate,
                 modificationType,
                 newRepaymentMethod,
                 currentMethodText,
@@ -6158,6 +6609,8 @@
                 prepaymentAmount,
                 prepaymentOption,
                 modifiedSchedule,
+                commercialModifiedInterest,
+                providentModifiedInterest,
                 showModificationFloat,
                 isFromModal,
                 floatPosition,
@@ -6167,11 +6620,14 @@
                 hasAnyModification,
                 frozenPaidInfo,
                 interestSavings,
+                commercialInterestSavings,
+                providentInterestSavings,
                 savedPeriods,
                 modificationSummary,
                 methodChangeDetails,
                 originalRemainingInterest,
                 modifiedRemainingInterest,
+                modifiedTotalPrincipal,
                 previewSchedule,
                 prepaymentDistribution,
                 toastMsg,
@@ -6187,108 +6643,14 @@
                 startFloatDrag,
                 onFloatDrag,
                 endFloatDrag,
+                handleBlur,
+                handleFocus,
+                handleProvidentAmountBlur,
+                initRateInputs,
             };
         }
     }).mount('#app');
-
-    // 暴露模态框行选择函数到 window，供 v-html 生成的 onclick 调用
-    const appInstance = document.querySelector('#app').__vue_app__;
-    if (appInstance && appInstance._instance) {
-        window.__selectPeriodFromModal = appInstance._instance.proxy.selectPeriodFromModal;
-    } else if (typeof selectPeriodFromModal === 'function') {
-        // Vue 3 CDN 全局构建：直接从全局上下文获取
-        window.__selectPeriodFromModal = selectPeriodFromModal;
-    }
     </script>
-    <div class="footer">
-        <p>k © 2026 | 基于Vue.js开发 | 数据存储于浏览器本地</p>
-        <script>
-        // 在游戏界面右下角添加浮动切换按钮
-        document.addEventListener('DOMContentLoaded', function() {
-            // 创建浮动按钮容器
-            const floatContainer = document.createElement('div');
-            floatContainer.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  `;
-
-            // 创建返回主页按钮
-            const homeBtn = document.createElement('a');
-            homeBtn.href = '/';
-            homeBtn.innerHTML = '🏠';
-            homeBtn.title = '返回主页';
-            homeBtn.style.cssText = `
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
-    color: white;
-    border-radius: 50%;
-    text-decoration: none;
-    font-size: 18px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s;
-  `;
-            homeBtn.onmouseover = () => {
-                homeBtn.style.transform = 'scale(1.1)';
-                homeBtn.style.boxShadow = '0 6px 12px rgba(59, 130, 246, 0.5)';
-            };
-            homeBtn.onmouseout = () => {
-                homeBtn.style.transform = 'scale(1)';
-                homeBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
-            };
-
-            // 创建切换到华容道按钮
-            const switchBtn = document.createElement('a');
-            switchBtn.href = '/klotski-v3';
-            switchBtn.innerHTML = '🧩';
-            switchBtn.title = '玩数字华容道';
-            switchBtn.style.cssText = `
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-    color: white;
-    border-radius: 50%;
-    text-decoration: none;
-    font-size: 18px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s;
-  `;
-            switchBtn.onmouseover = () => {
-                switchBtn.style.transform = 'scale(1.1)';
-                switchBtn.style.boxShadow = '0 6px 12px rgba(16, 185, 129, 0.5)';
-            };
-            switchBtn.onmouseout = () => {
-                switchBtn.style.transform = 'scale(1)';
-                switchBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
-            };
-
-            // 添加到页面
-            floatContainer.appendChild(homeBtn);
-            floatContainer.appendChild(switchBtn);
-            document.body.appendChild(floatContainer);
-
-            // 可调整z-index避免被覆盖
-            const gameHeader = document.querySelector('.game-header, .header, .sudoku-header');
-            if (gameHeader) {
-                const zIndex = parseInt(window.getComputedStyle(gameHeader).zIndex);
-                if (zIndex > 1000) {
-                    document.getElementById('game-nav').style.zIndex = (zIndex + 100).toString();
-                    floatContainer.style.zIndex = (zIndex + 100).toString();
-                }
-            }
-        });
-        </script>
 </body>
 
 </html>

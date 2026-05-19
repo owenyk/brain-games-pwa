@@ -2655,14 +2655,16 @@
                         </div>
                         <div class="summary-card card-5">
                             <div class="card-label">前{{ displayYears }}年本金占比</div>
-                            <div class="card-value">{{ principalRatioByYears.toFixed(1) }}%</div>
-                            <div class="card-note">已还本金比例</div>
+                            <div class="card-value" style="font-size:14px; line-height:1.5;">
+                                已还本金 <span style="color:#27ae60; font-weight:700;">{{ principalRatioByYears.paid.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) }}</span> / 本金总额 <span style="color:#27ae60; font-weight:700;">{{ principalRatioByYears.total.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) }}</span> ({{ principalRatioByYears.percent.toFixed(2) }}%)
+                            </div>
                         </div>
                         <!-- 卡片6：利息占比（带年份控制） -->
                         <div class="summary-card card-6">
                             <div class="card-label">前{{ displayYears }}年利息占比</div>
-                            <div class="card-value">{{ interestRatioByYears.toFixed(1) }}%</div>
-                            <div class="card-note">已还利息比例</div>
+                            <div class="card-value" style="font-size:14px; line-height:1.5;">
+                                已还利息 <span style="color:#e74c3c; font-weight:700;">{{ interestRatioByYears.paid.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) }}</span> / 利息总额 <span style="color:#e74c3c; font-weight:700;">{{ interestRatioByYears.total.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) }}</span> ({{ interestRatioByYears.percent.toFixed(2) }}%)
+                            </div>
                         </div>
                         <div v-if="loanType === 'combined'" style="grid-column:1 / -1; display:flex; align-items:center; gap:12px; margin-bottom:6px;">
                             <div style="font-size:12px; color:#475569; font-weight:600;">期数：</div>
@@ -4330,29 +4332,29 @@
 
             // 动态计算本金占比（根据displayYears计算）
             const principalRatioByYears = computed(() => {
-                if (optimizedLoanAmount.value <= 0) return 0;
+                if (optimizedLoanAmount.value <= 0) return { paid: 0, total: 0, percent: 0 };
 
                 const totalPrincipal = optimizedLoanAmount.value;
                 const yearsMonths = Math.min(displayYears.value * 12, totalMonths.value);
                 const repaymentData = generateRepaymentTable(yearsMonths);
 
-                if (repaymentData.length === 0) return 0;
+                if (repaymentData.length === 0) return { paid: 0, total: totalPrincipal, percent: 0 };
 
                 const totalPrincipalPaid = repaymentData.reduce((sum, item) => sum + item.principal, 0);
-                return (totalPrincipalPaid / totalPrincipal) * 100;
+                return { paid: totalPrincipalPaid, total: totalPrincipal, percent: (totalPrincipalPaid / totalPrincipal) * 100 };
             });
 
             // 动态计算利息占比（根据displayYears计算）
             const interestRatioByYears = computed(() => {
-                if (optimizedLoanAmount.value <= 0 || totalInterest.value <= 0) return 0;
+                if (optimizedLoanAmount.value <= 0 || totalInterest.value <= 0) return { paid: 0, total: 0, percent: 0 };
 
                 const yearsMonths = Math.min(displayYears.value * 12, totalMonths.value);
                 const repaymentData = generateRepaymentTable(yearsMonths);
 
-                if (repaymentData.length === 0) return 0;
+                if (repaymentData.length === 0) return { paid: 0, total: totalInterest.value, percent: 0 };
 
                 const totalInterestPaid = repaymentData.reduce((sum, item) => sum + item.interest, 0);
-                return (totalInterestPaid / totalInterest.value) * 100;
+                return { paid: totalInterestPaid, total: totalInterest.value, percent: (totalInterestPaid / totalInterest.value) * 100 };
             });
 
             // 为单个贷款部分生成还款明细（保证长度为 monthsCount，principal=0 时返回 0 列表）

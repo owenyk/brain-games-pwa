@@ -221,6 +221,12 @@ html, body {
 .btn-print:active {
   background-color: #3B82F6;
 }
+/* 笔记按钮激活态 */
+.btn-note-active {
+  background-color: #0EA5E9 !important;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.6);
+}
 .btn-answer {
   background-color: #16A34A;
   color: #fff;
@@ -497,7 +503,7 @@ html, body {
   <div class="card">
     <div class="btn-group">
       <button v-for="num in 9" :key="num" class="btn btn-num" @click="inputNumber(num)">{{ num }}</button>
-      <button class="btn btn-num" @click="toggleNoteMode">笔记</button>
+      <button class="btn btn-num" :class="{ 'btn-note-active': noteMode }" @click="toggleNoteMode">笔记</button>
     </div>
     <div class="btn-group">
       <select v-model="difficulty" class="btn btn-num" @change="restartNewGame">

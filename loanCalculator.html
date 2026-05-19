@@ -4632,43 +4632,62 @@
                     xAxis: {
                         type: 'category',
                         data: months.map(m => `第${m}期`),
-                        axisLabel: {
-                            rotate: 45
-                        }
+                        axisLabel: { rotate: 0, fontSize: 11 }
                     },
-                    yAxis: {
-                        type: 'value',
-                        axisLabel: {
-                            formatter: function(value) {
-                                if (value >= 10000) {
-                                    return (value / 10000).toFixed(1) + '万';
+                    yAxis: [
+                        {
+                            type: 'value',
+                            axisLabel: {
+                                formatter: function(value) {
+                                    if (value >= 10000) return (value / 10000).toFixed(1) + '万';
+                                    return value;
                                 }
-                                return value;
-                            }
+                            },
+                            splitLine: { show: true, lineStyle: { type: 'dashed', color: '#eee' } }
+                        },
+                        {
+                            type: 'value',
+                            axisLabel: {
+                                formatter: function(value) {
+                                    if (value >= 10000) return (value / 10000).toFixed(1) + '万';
+                                    return value;
+                                }
+                            },
+                            splitLine: { show: false }
                         }
-                    },
-                    series: [{
+                    ],
+                    series: [
+                        {
+                            name: '本金',
+                            type: 'bar',
+                            stack: 'amount',
+                            data: principals,
+                            itemStyle: { color: '#2ecc71' },
+                            barWidth: '30%',
+                            yAxisIndex: 0,
+                            label: { show: false }
+                        },
+                        {
+                            name: '利息',
+                            type: 'bar',
+                            stack: 'amount',
+                            data: interests,
+                            itemStyle: { color: '#e74c3c' },
+                            barWidth: '30%',
+                            yAxisIndex: 0,
+                            label: { show: false }
+                        },
+                        {
                             name: '月供',
                             type: 'line',
                             data: monthlyPayments,
                             itemStyle: { color: '#3498db' },
                             lineStyle: { width: 3 },
-                            smooth: true
-                        },
-                        {
-                            name: '本金',
-                            type: 'bar',
-                            data: principals,
-                            itemStyle: { color: '#2ecc71' },
-                            barWidth: '20%'
-                        },
-                        {
-                            name: '利息',
-                            type: 'bar',
-                            data: interests,
-                            itemStyle: { color: '#e74c3c' },
-                            barWidth: '20%',
-                            barGap: '10%'
+                            smooth: true,
+                            symbol: 'circle',
+                            symbolSize: 6,
+                            yAxisIndex: 0,
+                            label: { show: false }
                         }
                     ]
                 };

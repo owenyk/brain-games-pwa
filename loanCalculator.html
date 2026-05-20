@@ -2562,7 +2562,7 @@
                         <div class="rate-container">
                             <div class="rate-options">
                                 <button v-for="rate in commercialRates" :key="rate" :class="['rate-btn', { active: commercialRate === rate }]" @click="commercialRate = rate; updateCalculations()">
-                                    {{ rate }}%
+                                    {{ rate === LPR_5Y ? 'LPR 5Y' : (rate === LPR_1Y ? 'LPR 1Y' : (rate + '%')) }}
                                 </button>
                             </div>
                             <div class="rate-input-wrapper">
@@ -3542,9 +3542,22 @@
                 }
             });
 
+            // 贷款年限变化时：5年以上自动切换为 LPR 5Y 利率
+            watch(loanYears, (newYears) => {
+                if (newYears >= 5 && commercialRate.value === LPR_1Y) {
+                    commercialRate.value = LPR_5Y;
+                    updateCalculations();
+                }
+            });
 
-            // 常用利率选项
-            const commercialRates = ref([2.8, 2.95, 3.05, 3.45, 4.2, 4.9]);
+
+            // LPR 利率（来源：中国货币网 https://www.chinamoney.com.cn/chinese/bklpr/）
+            // 如 LPR 利率调整，请同步修改以下两个常量
+            const LPR_1Y = 3.00;  // 1年期 LPR
+            const LPR_5Y = 3.50;  // 5年期以上 LPR
+
+            // 常用利率选项（包含 LPR 1Y 和 5Y）
+            const commercialRates = ref([2.8, 3.05, LPR_1Y, LPR_5Y, 3.45, 4.2, 4.9]);
             const providentRates = ref([2.1, 2.5, 2.6, 2.85, 3.1, 3.25]);
 
             // 组合贷比例（商业部分占比的分子，范围 1-9，默认 2 表示 2:8）
@@ -6576,6 +6589,8 @@
                 // displayPeriod,
                 commercialRates,
                 providentRates,
+                LPR_1Y,
+                LPR_5Y,
                 downPaymentAmount,
                 originalLoanAmount,
                 optimizedLoanAmount,

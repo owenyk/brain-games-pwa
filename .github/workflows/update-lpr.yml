@@ -1,0 +1,48 @@
+name: Update LPR Rates
+
+on:
+  # 每天北京时间 10:00 自动检查（9点发布，1小时后抓取）
+  schedule:
+    - cron: '5 1 * * *'   # UTC 01:05 = 北京时间 09:05
+  # 手动触发
+  workflow_dispatch:
+
+jobs:
+  update-lpr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Fetch latest LPR and update HTML
+        run: node update-lpr.js --write
+
+      - name: Check for changes
+        id: changed
+        run: |
+          git diff --quiet loanCalculator.html
+          if [ $? -eq 0 ]; then
+            echo "LPR unchanged, skip commit"
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "LPR updated, creating commit"
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push if changed
+        if: steps.changed.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add loanCalculator.html
+          git commit -m "chore: auto-update LPR rates [skip ci]"
+          git push

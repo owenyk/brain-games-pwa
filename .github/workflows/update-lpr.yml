@@ -31,13 +31,12 @@ jobs:
       - name: Check for changes
         id: changed
         run: |
-          (git diff --quiet loanCalculator.html)
-          if [ $? -eq 0 ]; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "LPR unchanged, skip commit"
-          else
+          if [ -n "$(git status --porcelain loanCalculator.html)" ]; then
             echo "changed=true" >> $GITHUB_OUTPUT
             echo "LPR updated, creating commit"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "LPR unchanged, skip commit"
           fi
 
       - name: Commit and push if changed

@@ -3,7 +3,7 @@ name: Update LPR Rates
 on:
   # 每天北京时间 10:00 自动检查（9点发布，1小时后抓取）
   schedule:
-    - cron: '15 1 * * *'   # UTC 01:15 = 北京时间 09:15
+    - cron: '5 1 * * *'   # UTC 01:05 = 北京时间 09:05
   # 手动触发
   workflow_dispatch:
 
@@ -22,6 +22,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
       - name: Fetch latest LPR and update HTML
         run: node update-lpr.js --write
@@ -29,13 +31,13 @@ jobs:
       - name: Check for changes
         id: changed
         run: |
-          git diff --quiet loanCalculator.html
+          (git diff --quiet loanCalculator.html)
           if [ $? -eq 0 ]; then
-            echo "LPR unchanged, skip commit"
             echo "changed=false" >> $GITHUB_OUTPUT
+            echo "LPR unchanged, skip commit"
           else
-            echo "LPR updated, creating commit"
             echo "changed=true" >> $GITHUB_OUTPUT
+            echo "LPR updated, creating commit"
           fi
 
       - name: Commit and push if changed

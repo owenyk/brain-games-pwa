@@ -2551,7 +2551,7 @@
                         </div>
                         <div class="year-input-group">
                             <button type="button" class="year-dec-btn" @click="decreaseYear">-</button>
-                            <input v-model.number="loanYears" type="number" class="year-input" min="1" max="30" @input="updateCalculations" @blur="handleBlur(loanYears, v => v && v >= 1 && v <= 30, '贷款年限需在1-30年之间', prevLoanYears)">
+                            <input v-model.number="loanYears" type="number" class="year-input" min="1" max="30" @input="updateCalculations" @blur="handleBlur(loanYears, v => v && v >= 1 && v <= 120, '贷款年限需在1-30年之间', prevLoanYears)">
                             <button type="button" class="year-inc-btn" @click="increaseYear">+</button>
                         </div>
                     </div>
@@ -3557,8 +3557,8 @@
             const LPR_5Y = 3.50;  // 5年期以上 LPR
 
             // 常用利率选项（包含 LPR 1Y 和 5Y）
-            const commercialRates = ref([2.8, 3.05, LPR_1Y, LPR_5Y, 3.45, 4.2, 4.9]);
-            const providentRates = ref([2.1, 2.5, 2.6, 2.85, 3.1, 3.25]);
+            const commercialRates = ref([2.8, 3.05, LPR_1Y, LPR_5Y, 3.1, 3.6]);
+            const providentRates = ref([2.1, 2.35, 2.6, 2.85, 3.1, 3.25]);
 
             // 组合贷比例（商业部分占比的分子，范围 1-9，默认 2 表示 2:8）
             const combinedCommercialPart = ref(2);
@@ -3833,7 +3833,7 @@
 
             // 增加年限
             const increaseYear = () => {
-                if (loanYears.value < 30) {
+                if (loanYears.value < 120) {
                     loanYears.value++;
                     updateCalculations();
                 }

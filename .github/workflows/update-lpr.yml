@@ -3,7 +3,7 @@ name: Update LPR Rates
 on:
   # 每月20日，25日北京时间 9:05 自动检查（每月20日9点发布，5分钟后抓取；5日后再次抓取）
   schedule:
-    - cron: '0 5 1 20,25 * *'   # UTC 01:05 = 北京时间 09:05
+    - cron: '5 1 20,25 * *'   # UTC 01:05 = 北京时间 09:05
   # 手动触发
   workflow_dispatch:
 

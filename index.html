@@ -150,6 +150,16 @@
         box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
     }
 
+    .btn-play.gobang {
+        background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+        color: white;
+    }
+
+    .btn-play.gobang:hover {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+    }
+
     .icon {
         font-size: 18px;
     }
@@ -308,7 +318,7 @@
 
         <div class="header">
             <h1>脑力训练游戏合集</h1>
-            <p>两款经典益智游戏，锻炼逻辑思维与空间想象力</p>
+            <p>三款经典益智游戏，锻炼逻辑思维与空间想象力</p>
         </div>
         <div class="game-list">
             <div class="game-card">
@@ -345,17 +355,34 @@
                     </a>
                 </div>
             </div>
+            <div class="game-card">
+                <h2 class="game-title">五子棋</h2>
+                <p class="game-desc">经典的双人对弈棋类游戏，黑白双方交替落子，先在横、竖或斜线方向连成五子者获胜。规则简单，变化无穷。</p>
+                <div class="game-features">
+                    <span class="game-feature highlight">15×15 标准棋盘</span>
+                    <span class="game-feature">五连自动判定</span>
+                    <span class="game-feature">悔棋功能</span>
+                    <span class="game-feature">获胜高亮提示</span>
+                    <span class="game-feature">落子记录回放</span>
+                </div>
+                <div class="btn-container">
+                    <a href="/gobang" class="btn-play gobang">
+                        <span class="icon">♟️</span>
+                        <span>进入游戏</span>
+                    </a>
+                </div>
+            </div>
         </div>
         <div class="instructions">
             <h2>使用说明</h2>
             <ul>
-                <li>确保两个游戏文件 (klotski-v3.html 和 sudoku.html) 与本主页文件在同一目录下</li>
+                <li>确保三个游戏文件 (klotski-v3.html、sudoku.html、gobang.html) 与本主页文件在同一目录下</li>
                 <li>点击对应的"进入游戏"按钮即可开始游戏</li>
                 <li>两个游戏都支持完整的手机触控操作</li>
                 <li>游戏进度会自动保存在浏览器的本地存储中</li>
                 <li>建议在Chrome、Safari等现代浏览器中使用</li>
                 <li>如果遇到页面无法加载，请检查文件名是否正确（注意中文字符）</li>
-                <li>注意：如需分享，请将三个文件（index.html、klotski-v3.html、sudoku.html）放在一起</li>
+                <li>注意：如需分享，请将四个文件（index.html、klotski-v3.html、sudoku.html、gobang.html）放在一起</li>
             </ul>
         </div>
         <div class="footer">

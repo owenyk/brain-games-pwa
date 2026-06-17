@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<link rel="manifest" href="/manifest.json" />
+<link rel="icon" href="https://dummyimage.com/192/0f172a/7dd3fc&text=♟" />
+<title>五子棋</title>
+<script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #0F172A;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #fff;
+    overflow-x: hidden;
+  }
+  #app { width: 100%; padding: 12px; }
+
+  .card {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto 12px;
+    background-color: #1E293B;
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  /* 标题卡：和 sudoku/klotski 一致 */
+  .title-card {
+    text-align: center;
+    padding: 8px 16px !important;
+  }
+  .title-card h1 {
+    padding: 8px 20px;
+    background: rgba(15, 23, 42, 0.9);
+    border-radius: 20px;
+    color: #7dd3fc;
+    font-size: 16px;
+    font-weight: bold;
+    border: 1px solid rgba(125, 211, 252, 0.2);
+    display: inline-block;
+  }
+  .title-card p {
+    font-size: 14px;
+    color: #93C5FD;
+    margin-top: 8px;
+    margin-bottom: 0;
+  }
+
+  /* 状态卡：双方计时器 */
+  .status-card {
+    padding: 10px;
+  }
+  .status-banner {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #FCD34D;
+    padding: 6px 14px;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    border-radius: 20px;
+    margin: 0 auto 8px;
+    width: fit-content;
+  }
+  .status-banner.draw {
+    color: #94A3B8;
+    background: rgba(100, 116, 139, 0.15);
+    border-color: rgba(100, 116, 139, 0.4);
+  }
+  .panes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid #94A3B8;
+    flex-shrink: 0;
+  }
+  .dot.black {
+    background: radial-gradient(circle at 35% 30%, #666 0%, #000 85%);
+  }
+  .dot.white {
+    background: radial-gradient(circle at 35% 30%, #fff 0%, #d0d0d0 95%);
+  }
+  .player-pane {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #0F172A;
+    border: 1px solid #334155;
+    transition: all 0.2s;
+  }
+  .player-pane.active {
+    background: rgba(125, 211, 252, 0.10);
+    border-color: rgba(125, 211, 252, 0.5);
+    box-shadow: 0 0 0 1px rgba(125, 211, 252, 0.15) inset;
+  }
+  .player-pane.active .time { color: #7dd3fc; }
+  .player-pane .dot {
+    width: 22px;
+    height: 22px;
+  }
+  .pane-info { flex: 1; min-width: 0; }
+  .pane-name {
+    font-size: 12px;
+    color: #94A3B8;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+  .time {
+    font-family: 'Courier New', ui-monospace, monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: #E2E8F0;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+  .pane-turn {
+    font-size: 10px;
+    color: #7dd3fc;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-top: 2px;
+    height: 12px;
+  }
+  .pane-turn:empty { display: none; }
+
+  /* 棋盘卡 */
+  .board-card {
+    padding: 12px;
+  }
+  .board {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #E8C988;
+    background-image:
+      linear-gradient(45deg, rgba(212,184,120,.25) 25%, transparent 25%),
+      linear-gradient(-45deg, rgba(212,184,120,.25) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, rgba(212,184,120,.25) 75%),
+      linear-gradient(-45deg, transparent 75%, rgba(212,184,120,.25) 75%);
+    background-size: 8px 8px;
+    background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+    border: 2px solid #6B4E1F;
+    border-radius: 8px;
+    box-shadow: inset 0 0 18px rgba(107, 78, 31, 0.25);
+    cursor: crosshair;
+    user-select: none;
+    touch-action: manipulation;
+  }
+  .board-svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .board-svg .grid line { stroke: #2C2419; stroke-width: 0.5; }
+  .board-svg .star  circle { fill: #2C2419; }
+  .board-svg .win-line line { stroke: #DC2626; stroke-width: 2.5; stroke-linecap: round; }
+
+  .stone {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+  }
+  .stone.black {
+    background: radial-gradient(circle at 35% 30%, #666 0%, #0A0A0A 85%);
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+  }
+  .stone.white {
+    background: radial-gradient(circle at 35% 30%, #ffffff 0%, #C8C8C8 95%);
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.35);
+  }
+
+  /* 按钮行：和 sudoku 按钮风格一致 */
+  .btn-row2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .btn {
+    width: 100%;
+    padding: 12px 0;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.15s;
+  }
+  .btn:active:not(:disabled) { filter: brightness(1.15); }
+  .btn:disabled { cursor: not-allowed; opacity: 0.5; }
+  .btn-warning { background-color: #F59E0B; color: #fff; }
+  .btn-danger  { background-color: #DC2626; color: #fff; }
+  .btn-secondary { background-color: #2563EB; color: #fff; }
+  .btn-primary { background-color: #16A34A; color: #fff; }
+  .btn-slate   { background-color: #334155; color: #fff; }
+
+  /* 落子记录 */
+  .history-card { padding: 14px 16px; }
+  .history-title {
+    font-size: 14px;
+    color: #93C5FD;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .history-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-height: 110px;
+    overflow-y: auto;
+    padding: 2px;
+  }
+  .history-list::-webkit-scrollbar { width: 5px; }
+  .history-list::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+  .move-tag {
+    font-size: 12px;
+    padding: 3px 9px;
+    border-radius: 12px;
+    border: 1px solid #334155;
+    background: #0F172A;
+    color: #CBD5E1;
+    white-space: nowrap;
+  }
+  .move-tag.black { color: #fff; border-color: #475569; }
+  .move-tag.white { color: #E2E8F0; background: #1E293B; border-color: #334155; }
+
+  /* 页脚 */
+  .footer {
+    max-width: 420px;
+    margin: 18px auto 0;
+    text-align: center;
+    font-size: 12px;
+    color: #64748B;
+  }
+  .footer a {
+    color: #7dd3fc;
+    text-decoration: none;
+  }
+  .footer a:hover { text-decoration: underline; }
+
+  /* 弹窗：复用 sudoku 的 modal 风格 */
+  .modal {
+    position: fixed; inset: 0;
+    background-color: rgba(0,0,0,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999; padding: 12px;
+  }
+  .modal-card {
+    width: 100%; max-width: 420px;
+    background-color: #1E293B;
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .modal-card h2 { color: #93C5FD; font-size: 20px; margin-bottom: 12px; text-align: center; }
+  .modal-card p  { color: #CBD5E1; font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- 标题卡 -->
+  <div class="card title-card">
+    <h1>五子棋</h1>
+    <p>黑先白后 · 五子连珠获胜</p>
+  </div>
+
+  <!-- 状态卡：双方计时器 -->
+  <div class="card status-card">
+    <div v-if="winner || isDraw" class="status-banner" :class="{draw: isDraw}">
+      {{ winner ? '🏆 ' + (winner===1?'黑方':'白方') + '获胜' : '🤝 平局' }}
+    </div>
+    <div class="panes">
+      <div class="player-pane" :class="{active: currentPlayer===1 && !finished}">
+        <span class="dot black"></span>
+        <div class="pane-info">
+          <div class="pane-name">黑方</div>
+          <div class="time">{{ fmtTime(blackTime) }}</div>
+          <div class="pane-turn">{{ currentPlayer===1 && !finished ? '● 落子中' : '' }}</div>
+        </div>
+      </div>
+      <div class="player-pane" :class="{active: currentPlayer===2 && !finished}">
+        <span class="dot white"></span>
+        <div class="pane-info">
+          <div class="pane-name">白方</div>
+          <div class="time">{{ fmtTime(whiteTime) }}</div>
+          <div class="pane-turn">{{ currentPlayer===2 && !finished ? '● 落子中' : '' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 棋盘卡 -->
+  <div class="card board-card">
+    <div ref="boardRef" class="board" @click="handleClick">
+      <svg class="board-svg" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet">
+        <g class="grid">
+          <line v-for="i in 15" :key="'h'+i"
+                :x1="20" :y1="20 + (i-1)*40"
+                :x2="580" :y2="20 + (i-1)*40" />
+          <line v-for="i in 15" :key="'v'+i"
+                :x1="20 + (i-1)*40" :y1="20"
+                :x2="20 + (i-1)*40" :y2="580" />
+        </g>
+        <g class="star">
+          <circle v-for="(p,idx) in stars" :key="idx"
+                  :cx="20 + (p.x-1)*40" :cy="20 + (p.y-1)*40" r="3" />
+        </g>
+        <g v-if="winLine" class="win-line">
+          <line
+            :x1="20 + (winLine[0].x-1)*40" :y1="20 + (winLine[0].y-1)*40"
+            :x2="20 + (winLine[4].x-1)*40" :y2="20 + (winLine[4].y-1)*40" />
+        </g>
+      </svg>
+      <div v-for="(s,idx) in moves" :key="idx"
+           class="stone" :class="s.player===1?'black':'white'"
+           :style="stoneStyle(s)"></div>
+    </div>
+  </div>
+
+  <!-- 控制按钮 -->
+  <div class="card" style="padding:12px;">
+    <div class="btn-row2">
+      <button class="btn btn-warning" @click="undo" :disabled="!canUndo || finished">悔棋</button>
+      <button class="btn btn-danger"  @click="restart">重新开始</button>
+    </div>
+  </div>
+
+  <!-- 落子记录 -->
+  <div class="card history-card">
+    <div class="history-title">落子记录 ({{ moves.length }})</div>
+    <div class="history-list">
+      <span v-if="moves.length===0" style="font-size:12px;color:#64748B;">暂无</span>
+      <span v-for="(m,i) in moves" :key="i"
+            class="move-tag" :class="m.player===1?'black':'white'">
+        {{ i+1 }}. {{ m.player===1?'黑':'白' }} {{ m.x }},{{ m.y }}
+      </span>
+    </div>
+  </div>
+
+  <!-- 页脚 -->
+  <div class="footer">
+    <a href="/">← 返回游戏合集</a>
+  </div>
+
+  <!-- 结束弹窗 -->
+  <div v-if="showOver" class="modal" @click.self="showOver=false">
+    <div class="modal-card">
+      <h2>{{ winner ? (winner===1?'🏆 黑方获胜':'🏆 白方获胜') : '🤝 平局' }}</h2>
+      <p>共 {{ moves.length }} 手。再来一局？</p>
+      <div class="btn-row2">
+        <button class="btn btn-slate"    @click="showOver=false">查看棋盘</button>
+        <button class="btn btn-primary"  @click="restart">重新开始</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const { createApp, ref, reactive, computed, onMounted, onUnmounted } = Vue;
+
+createApp({
+  setup() {
+    const GRID = 15;
+    const VB = 600;       // SVG viewBox 边长
+    const PAD = 20;       // viewBox 内边距
+    const CELL = 40;      // viewBox 内每格
+
+    const boardRef = ref(null);
+    const board = reactive(Array.from({ length: GRID }, () => Array(GRID).fill(0)));
+    const currentPlayer = ref(1);  // 1=黑 2=白
+    const moves = ref([]);
+    const winner = ref(0);
+    const winLine = ref(null);
+    const showOver = ref(false);
+
+    // 双方计时
+    const blackTime = ref(0);  // ms
+    const whiteTime = ref(0);
+    const tickRef = ref(null);
+
+    const stars = [
+      { x: 3, y: 3 }, { x: 3, y: 11 },
+      { x: 7, y: 7 },
+      { x: 11, y: 3 }, { x: 11, y: 11 }
+    ];
+
+    const canUndo = computed(() => moves.value.length > 0);
+    const isDraw  = computed(() => !winner.value && moves.value.length === GRID * GRID);
+    const finished = computed(() => !!winner.value || isDraw.value);
+
+    // 格式化 mm:ss
+    function fmtTime(ms) {
+      const total = Math.max(0, Math.floor(ms / 1000));
+      const m = String(Math.floor(total / 60)).padStart(2, '0');
+      const s = String(total % 60).padStart(2, '0');
+      return m + ':' + s;
+    }
+
+    // 计时器：每秒累加到当前落子方
+    function startTimer() {
+      stopTimer();
+      tickRef.value = setInterval(() => {
+        if (finished.value) return;
+        if (currentPlayer.value === 1) blackTime.value += 100;
+        else whiteTime.value += 100;
+      }, 100);
+    }
+    function stopTimer() {
+      if (tickRef.value) { clearInterval(tickRef.value); tickRef.value = null; }
+    }
+
+    // 棋子定位：viewBox 坐标 → 百分比
+    function stoneStyle(s) {
+      const cx = PAD + (s.x - 1) * CELL;
+      const cy = PAD + (s.y - 1) * CELL;
+      return {
+        left: (cx / VB * 100) + '%',
+        top:  (cy / VB * 100) + '%',
+        width: (CELL * 0.92 / VB * 100) + '%',
+        height: (CELL * 0.92 / VB * 100) + '%'
+      };
+    }
+
+    // 点击 → 找最近交叉点
+    function handleClick(e) {
+      if (finished.value) return;
+      const rect = boardRef.value.getBoundingClientRect();
+      // 用 SVG 坐标：rect 宽度对应 viewBox VB
+      const scale = VB / rect.width;
+      const px = (e.clientX - rect.left) * scale;
+      const py = (e.clientY - rect.top)  * scale;
+      const gx = Math.round((px - PAD) / CELL) + 1;
+      const gy = Math.round((py - PAD) / CELL) + 1;
+      if (gx < 1 || gx > GRID || gy < 1 || gy > GRID) return;
+      if (board[gx - 1][gy - 1] !== 0) return;
+
+      board[gx - 1][gy - 1] = currentPlayer.value;
+      moves.value.push({ x: gx, y: gy, player: currentPlayer.value });
+
+      const line = checkWin(gx - 1, gy - 1, currentPlayer.value);
+      if (line) {
+        winner.value = currentPlayer.value;
+        winLine.value = line.map(([x, y]) => ({ x: x + 1, y: y + 1 }));
+        showOver.value = true;
+        stopTimer();
+        return;
+      }
+      if (moves.value.length === GRID * GRID) {
+        showOver.value = true; // 平局
+        stopTimer();
+        return;
+      }
+      currentPlayer.value = currentPlayer.value === 1 ? 2 : 1;
+    }
+
+    // 4 方向五连判定（从落点向正反两侧各延伸 4 步）
+    function checkWin(x, y, p) {
+      const dirs = [[1,0],[0,1],[1,1],[1,-1]];
+      for (const [dx, dy] of dirs) {
+        const line = [[x, y]];
+        for (let i = 1; i < 5; i++) {
+          const nx = x + dx * i, ny = y + dy * i;
+          if (nx < 0 || nx >= GRID || ny < 0 || ny >= GRID) break;
+          if (board[nx][ny] !== p) break;
+          line.push([nx, ny]);
+        }
+        for (let i = 1; i < 5; i++) {
+          const nx = x - dx * i, ny = y - dy * i;
+          if (nx < 0 || nx >= GRID || ny < 0 || ny >= GRID) break;
+          if (board[nx][ny] !== p) break;
+          line.unshift([nx, ny]);
+        }
+        if (line.length >= 5) return line.slice(0, 5);
+      }
+      return null;
+    }
+
+    function undo() {
+      if (!canUndo.value || finished.value) return;
+      const last = moves.value.pop();
+      board[last.x - 1][last.y - 1] = 0;
+      currentPlayer.value = last.player;
+      winLine.value = null;
+      winner.value = 0;
+    }
+    function restart() {
+      for (let i = 0; i < GRID; i++)
+        for (let j = 0; j < GRID; j++)
+          board[i][j] = 0;
+      moves.value = [];
+      currentPlayer.value = 1;
+      winner.value = 0;
+      winLine.value = null;
+      showOver.value = false;
+      blackTime.value = 0;
+      whiteTime.value = 0;
+      startTimer();
+    }
+
+    onMounted(() => startTimer());
+    onUnmounted(() => stopTimer());
+
+    return {
+      boardRef, board, currentPlayer, moves, winner, winLine, stars, showOver,
+      blackTime, whiteTime,
+      canUndo, isDraw, finished,
+      stoneStyle, handleClick, undo, restart, fmtTime
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>

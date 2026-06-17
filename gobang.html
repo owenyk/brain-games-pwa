@@ -29,7 +29,7 @@
     padding: 16px;
   }
 
-  /* 标题卡：和 sudoku/klotski 一致 */
+  /* 标题卡 */
   .title-card {
     text-align: center;
     padding: 8px 16px !important;
@@ -50,11 +50,19 @@
     margin-top: 8px;
     margin-bottom: 0;
   }
-
-  /* 状态卡：双方计时器 */
-  .status-card {
-    padding: 10px;
+  .title-card .mode-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    border-radius: 12px;
+    color: #FCD34D;
+    font-size: 12px;
+    margin-left: 6px;
   }
+
+  /* 状态卡 */
+  .status-card { padding: 10px; }
   .status-banner {
     text-align: center;
     font-size: 14px;
@@ -134,11 +142,26 @@
     height: 12px;
   }
   .pane-turn:empty { display: none; }
+  .pane-turn.thinking {
+    color: #FCD34D;
+    letter-spacing: 0;
+  }
+  .pane-turn.thinking::after {
+    content: '...';
+    display: inline-block;
+    animation: blink-dots 1.2s steps(3, end) infinite;
+    width: 1.4em;
+    text-align: left;
+  }
+  @keyframes blink-dots {
+    0%   { content: ''; }
+    33%  { content: '.'; }
+    66%  { content: '..'; }
+    100% { content: '...'; }
+  }
 
   /* 棋盘卡 */
-  .board-card {
-    padding: 12px;
-  }
+  .board-card { padding: 12px; }
   .board {
     position: relative;
     width: 100%;
@@ -158,6 +181,7 @@
     user-select: none;
     touch-action: manipulation;
   }
+  .board.locked { cursor: wait; }
   .board-svg {
     position: absolute;
     top: 0; left: 0;
@@ -185,7 +209,7 @@
     box-shadow: 1px 1px 2px rgba(0,0,0,0.35);
   }
 
-  /* 按钮行：和 sudoku 按钮风格一致 */
+  /* 按钮行 */
   .btn-row2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -208,6 +232,7 @@
   .btn-secondary { background-color: #2563EB; color: #fff; }
   .btn-primary { background-color: #16A34A; color: #fff; }
   .btn-slate   { background-color: #334155; color: #fff; }
+  .btn-block { margin-top: 8px; }
 
   /* 落子记录 */
   .history-card { padding: 14px 16px; }
@@ -253,7 +278,7 @@
   }
   .footer a:hover { text-decoration: underline; }
 
-  /* 弹窗：复用 sudoku 的 modal 风格 */
+  /* 弹窗 */
   .modal {
     position: fixed; inset: 0;
     background-color: rgba(0,0,0,0.7);
@@ -268,6 +293,50 @@
   }
   .modal-card h2 { color: #93C5FD; font-size: 20px; margin-bottom: 12px; text-align: center; }
   .modal-card p  { color: #CBD5E1; font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
+
+  /* 模式菜单 */
+  .menu-section { margin-bottom: 16px; }
+  .menu-section:last-child { margin-bottom: 0; }
+  .menu-section-title {
+    color: #94A3B8;
+    font-size: 12px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  .menu-btn {
+    display: block;
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    background: #0F172A;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #E2E8F0;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .menu-btn:hover { background: #1E293B; border-color: #7dd3fc; }
+  .menu-btn:active { filter: brightness(1.15); }
+  .menu-btn:last-child { margin-bottom: 0; }
+  .menu-btn-title {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+    color: #7dd3fc;
+    margin-bottom: 2px;
+  }
+  .menu-btn-desc {
+    display: block;
+    font-size: 12px;
+    color: #94A3B8;
+    font-weight: 400;
+  }
+  .menu-btn.easy   .menu-btn-title { color: #34D399; }
+  .menu-btn.medium .menu-btn-title { color: #FCD34D; }
+  .menu-btn.hard   .menu-btn-title { color: #F87171; }
 </style>
 </head>
 <body>
@@ -276,37 +345,47 @@
   <!-- 标题卡 -->
   <div class="card title-card">
     <h1>五子棋</h1>
-    <p>黑先白后 · 五子连珠获胜</p>
+    <p>
+      <span v-if="gameMode==='menu'">请选择游戏模式</span>
+      <span v-else-if="gameMode==='pvp'">双人对战 · 黑先白后</span>
+      <span v-else-if="gameMode==='pvai'">人机对战 · 玩家执黑先手<span class="mode-badge">{{ difficultyLabel }}</span></span>
+    </p>
   </div>
 
-  <!-- 状态卡：双方计时器 -->
-  <div class="card status-card">
+  <!-- 状态卡 -->
+  <div v-if="gameMode!=='menu'" class="card status-card">
     <div v-if="winner || isDraw" class="status-banner" :class="{draw: isDraw}">
-      {{ winner ? '🏆 ' + (winner===1?'黑方':'白方') + '获胜' : '🤝 平局' }}
+      {{ winner ? '🏆 ' + (winner===1 ? blackName : whiteName) + '获胜' : '🤝 平局' }}
     </div>
     <div class="panes">
       <div class="player-pane" :class="{active: currentPlayer===1 && !finished}">
         <span class="dot black"></span>
         <div class="pane-info">
-          <div class="pane-name">黑方</div>
+          <div class="pane-name">{{ blackName }}</div>
           <div class="time">{{ fmtTime(blackTime) }}</div>
-          <div class="pane-turn">{{ currentPlayer===1 && !finished ? '● 落子中' : '' }}</div>
+          <div class="pane-turn">
+            {{ currentPlayer===1 && !finished ? '● 落子中' : '' }}
+          </div>
         </div>
       </div>
       <div class="player-pane" :class="{active: currentPlayer===2 && !finished}">
         <span class="dot white"></span>
         <div class="pane-info">
-          <div class="pane-name">白方</div>
+          <div class="pane-name">{{ whiteName }}</div>
           <div class="time">{{ fmtTime(whiteTime) }}</div>
-          <div class="pane-turn">{{ currentPlayer===2 && !finished ? '● 落子中' : '' }}</div>
+          <div class="pane-turn" :class="{thinking: gameMode==='pvai' && currentPlayer===2 && aiThinking}">
+            {{ currentPlayer===2 && !finished
+                ? (gameMode==='pvai' && aiThinking ? 'AI 思考中' : '● 落子中')
+                : '' }}
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- 棋盘卡 -->
-  <div class="card board-card">
-    <div ref="boardRef" class="board" @click="handleClick">
+  <div v-if="gameMode!=='menu'" class="card board-card">
+    <div ref="boardRef" class="board" :class="{locked: aiThinking}" @click="handleClick">
       <svg class="board-svg" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet">
         <g class="grid">
           <line v-for="i in 15" :key="'h'+i"
@@ -333,21 +412,22 @@
   </div>
 
   <!-- 控制按钮 -->
-  <div class="card" style="padding:12px;">
+  <div v-if="gameMode!=='menu'" class="card" style="padding:12px;">
     <div class="btn-row2">
-      <button class="btn btn-warning" @click="undo" :disabled="!canUndo || finished">悔棋</button>
+      <button class="btn btn-warning" @click="undo" :disabled="!canUndo || finished || aiThinking">悔棋</button>
       <button class="btn btn-danger"  @click="restart">重新开始</button>
     </div>
+    <button class="btn btn-slate btn-block" @click="backToMenu">返回主菜单</button>
   </div>
 
   <!-- 落子记录 -->
-  <div class="card history-card">
+  <div v-if="gameMode!=='menu'" class="card history-card">
     <div class="history-title">落子记录 ({{ moves.length }})</div>
     <div class="history-list">
       <span v-if="moves.length===0" style="font-size:12px;color:#64748B;">暂无</span>
       <span v-for="(m,i) in moves" :key="i"
             class="move-tag" :class="m.player===1?'black':'white'">
-        {{ i+1 }}. {{ m.player===1?'黑':'白' }} {{ m.x }},{{ m.y }}
+        {{ i+1 }}. {{ moveTagOf(m) }}
       </span>
     </div>
   </div>
@@ -357,10 +437,39 @@
     <a href="/">← 返回游戏合集</a>
   </div>
 
+  <!-- 开始菜单 -->
+  <div v-if="gameMode==='menu'" class="modal">
+    <div class="modal-card">
+      <h2>选择游戏模式</h2>
+      <div class="menu-section">
+        <div class="menu-section-title">人机对战</div>
+        <button class="menu-btn easy"   @click="startPvai('easy')">
+          <span class="menu-btn-title">♟ 简单</span>
+          <span class="menu-btn-desc">AI 偶尔失误，适合休闲娱乐</span>
+        </button>
+        <button class="menu-btn medium" @click="startPvai('medium')">
+          <span class="menu-btn-title">♟♟ 中等</span>
+          <span class="menu-btn-desc">AI 正常发挥，会进攻和防守</span>
+        </button>
+        <button class="menu-btn hard"   @click="startPvai('hard')">
+          <span class="menu-btn-title">♛ 困难</span>
+          <span class="menu-btn-desc">AI 深度思考，欢迎挑战高手</span>
+        </button>
+      </div>
+      <div class="menu-section">
+        <div class="menu-section-title">本地对战</div>
+        <button class="menu-btn" @click="startPvp()">
+          <span class="menu-btn-title">👥 双人对战</span>
+          <span class="menu-btn-desc">两人轮流落子，同设备对战</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- 结束弹窗 -->
   <div v-if="showOver" class="modal" @click.self="showOver=false">
     <div class="modal-card">
-      <h2>{{ winner ? (winner===1?'🏆 黑方获胜':'🏆 白方获胜') : '🤝 平局' }}</h2>
+      <h2>{{ winner ? '🏆 ' + (winner===1 ? blackName : whiteName) + '获胜' : '🤝 平局' }}</h2>
       <p>共 {{ moves.length }} 手。再来一局？</p>
       <div class="btn-row2">
         <button class="btn btn-slate"    @click="showOver=false">查看棋盘</button>
@@ -374,23 +483,221 @@
 <script>
 const { createApp, ref, reactive, computed, onMounted, onUnmounted } = Vue;
 
+// ========== AI 引擎 ==========
+const G = 15;
+const DIRS = [[1,0],[0,1],[1,1],[1,-1]];
+
+function inBoard(x, y) { return x >= 0 && x < G && y >= 0 && y < G; }
+
+// 候选位置：已有棋子半径 2 内的空位；开局返回中心
+function getCandidates(b) {
+  const seen = new Set();
+  const out = [];
+  let hasStone = false;
+  for (let i = 0; i < G; i++) {
+    for (let j = 0; j < G; j++) {
+      if (b[i][j] !== 0) {
+        hasStone = true;
+        for (let dx = -2; dx <= 2; dx++) {
+          for (let dy = -2; dy <= 2; dy++) {
+            if (dx === 0 && dy === 0) continue;
+            const nx = i + dx, ny = j + dy;
+            if (inBoard(nx, ny) && b[nx][ny] === 0) {
+              const k = nx * G + ny;
+              if (!seen.has(k)) { seen.add(k); out.push([nx, ny]); }
+            }
+          }
+        }
+      }
+    }
+  }
+  return hasStone ? out : [[7, 7]];
+}
+
+// 形状评分：count 是含落子的连子数，blockedEnds 是两端被封的数量
+function scoreLine(count, blockedEnds) {
+  if (blockedEnds === 2 && count < 5) return 0;
+  if (count >= 5) return 10000000;
+  if (count === 4) {
+    if (blockedEnds === 0) return 1000000; // 活四
+    if (blockedEnds === 1) return 100000;  // 冲四
+  }
+  if (count === 3) {
+    if (blockedEnds === 0) return 10000;   // 活三
+    if (blockedEnds === 1) return 1000;    // 眠三
+  }
+  if (count === 2) {
+    if (blockedEnds === 0) return 1000;
+    if (blockedEnds === 1) return 100;
+  }
+  if (count === 1) {
+    if (blockedEnds === 0) return 100;
+    if (blockedEnds === 1) return 10;
+  }
+  return 0;
+}
+
+// 评估在 (x,y) 落 player 子能形成的进攻分（空位才有效）
+function evaluateMove(b, x, y, p) {
+  if (b[x][y] !== 0) return -1;
+  let total = 0;
+  for (const [dx, dy] of DIRS) {
+    let count = 1, blocked = 0;
+    for (let i = 1; i < 6; i++) {
+      const nx = x + dx * i, ny = y + dy * i;
+      if (!inBoard(nx, ny)) { blocked++; break; }
+      if (b[nx][ny] === p) count++;
+      else if (b[nx][ny] === 0) break;
+      else { blocked++; break; }
+    }
+    for (let i = 1; i < 6; i++) {
+      const nx = x - dx * i, ny = y - dy * i;
+      if (!inBoard(nx, ny)) { blocked++; break; }
+      if (b[nx][ny] === p) count++;
+      else if (b[nx][ny] === 0) break;
+      else { blocked++; break; }
+    }
+    total += scoreLine(count, blocked);
+  }
+  return total;
+}
+
+function scoreMoves(b, candidates, ai, opp) {
+  return candidates.map(([x, y]) => {
+    const my  = evaluateMove(b, x, y, ai);
+    const op  = evaluateMove(b, x, y, opp);
+    return { x, y, s: my + op * 0.95 };
+  }).sort((a, b) => b.s - a.s);
+}
+
+// minimax 搜索（alpha-beta 剪枝）
+function minimax(b, depth, alpha, beta, isMax, ai, opp) {
+  if (depth === 0) {
+    return boardEvaluate(b, ai, opp);
+  }
+  const cands = getCandidates(b);
+  if (cands.length === 0) return 0;
+  const scored = scoreMoves(b, cands, ai, opp);
+  const top = scored.slice(0, 8);
+
+  if (isMax) {
+    let best = -Infinity;
+    for (const { x, y } of top) {
+      b[x][y] = ai;
+      const v = minimax(b, depth - 1, alpha, beta, false, ai, opp);
+      b[x][y] = 0;
+      if (v > best) best = v;
+      if (best > alpha) alpha = best;
+      if (beta <= alpha) break;
+    }
+    return best;
+  } else {
+    let best = Infinity;
+    for (const { x, y } of top) {
+      b[x][y] = opp;
+      const v = minimax(b, depth - 1, alpha, beta, true, ai, opp);
+      b[x][y] = 0;
+      if (v < best) best = v;
+      if (best < beta) beta = best;
+      if (beta <= alpha) break;
+    }
+    return best;
+  }
+}
+
+// 整盘静态评估（用于 minimax 叶子）
+function boardEvaluate(b, ai, opp) {
+  let score = 0;
+  for (let i = 0; i < G; i++) {
+    for (let j = 0; j < G; j++) {
+      if (b[i][j] === 0) {
+        score += evaluateMove(b, i, j, ai)  * 0.04;
+        score -= evaluateMove(b, i, j, opp) * 0.04;
+      }
+    }
+  }
+  return score;
+}
+
+// AI 主入口：选 (x, y) 下一步
+function aiSelectMove(b, aiPlayer, difficulty) {
+  const opp = aiPlayer === 1 ? 2 : 1;
+  const cands = getCandidates(b);
+  if (cands.length === 0) return [7, 7];
+  if (cands.length === 1) return cands[0];
+
+  // 1) 必胜：能直接连五
+  for (const [x, y] of cands) {
+    if (evaluateMove(b, x, y, aiPlayer) >= 10000000) return [x, y];
+  }
+  // 2) 必防：阻止对手下一步连五
+  for (const [x, y] of cands) {
+    if (evaluateMove(b, x, y, opp) >= 10000000) return [x, y];
+  }
+
+  if (difficulty === 'easy') {
+    // 简单：30% 走最佳；70% 从前 10% 候选中随机
+    if (Math.random() < 0.30) {
+      const scored = scoreMoves(b, cands, aiPlayer, opp);
+      return [scored[0].x, scored[0].y];
+    } else {
+      const scored = scoreMoves(b, cands, aiPlayer, opp);
+      const n = Math.max(3, Math.floor(scored.length * 0.10));
+      const top = scored.slice(0, n);
+      const pick = top[Math.floor(Math.random() * top.length)];
+      return [pick.x, pick.y];
+    }
+  }
+
+  if (difficulty === 'medium') {
+    // 中等：80% 走最佳；20% 从前 3 中随机
+    if (Math.random() < 0.80) {
+      const scored = scoreMoves(b, cands, aiPlayer, opp);
+      return [scored[0].x, scored[0].y];
+    } else {
+      const scored = scoreMoves(b, cands, aiPlayer, opp);
+      const top = scored.slice(0, Math.min(3, scored.length));
+      const pick = top[Math.floor(Math.random() * top.length)];
+      return [pick.x, pick.y];
+    }
+  }
+
+  // 困难：深度 2 的 minimax 搜索（root 6 选，深度 1 8 选）
+  const scored = scoreMoves(b, cands, aiPlayer, opp);
+  const root = scored.slice(0, 6);
+  let bestScore = -Infinity, bestMove = [root[0].x, root[0].y];
+  for (const { x, y } of root) {
+    b[x][y] = aiPlayer;
+    const v = minimax(b, 1, -Infinity, Infinity, false, aiPlayer, opp);
+    b[x][y] = 0;
+    if (v > bestScore) { bestScore = v; bestMove = [x, y]; }
+  }
+  return bestMove;
+}
+
+// ========== Vue 应用 ==========
 createApp({
   setup() {
     const GRID = 15;
-    const VB = 600;       // SVG viewBox 边长
-    const PAD = 20;       // viewBox 内边距
-    const CELL = 40;      // viewBox 内每格
+    const VB = 600;
+    const PAD = 20;
+    const CELL = 40;
 
     const boardRef = ref(null);
     const board = reactive(Array.from({ length: GRID }, () => Array(GRID).fill(0)));
-    const currentPlayer = ref(1);  // 1=黑 2=白
+    const currentPlayer = ref(1);
     const moves = ref([]);
     const winner = ref(0);
     const winLine = ref(null);
     const showOver = ref(false);
 
-    // 双方计时
-    const blackTime = ref(0);  // ms
+    // 模式与 AI 状态
+    const gameMode = ref('menu');        // 'menu' | 'pvp' | 'pvai'
+    const difficulty = ref('medium');    // 'easy' | 'medium' | 'hard'
+    const aiThinking = ref(false);
+    const aiTimeout = ref(null);
+
+    const blackTime = ref(0);
     const whiteTime = ref(0);
     const tickRef = ref(null);
 
@@ -400,11 +707,16 @@ createApp({
       { x: 12, y: 4 }, { x: 12, y: 12 }
     ];
 
-    const canUndo = computed(() => moves.value.length > 0);
-    const isDraw  = computed(() => !winner.value && moves.value.length === GRID * GRID);
-    const finished = computed(() => !!winner.value || isDraw.value);
+    const blackName = computed(() => gameMode.value === 'pvai' ? '玩家' : '黑方');
+    const whiteName = computed(() => gameMode.value === 'pvai' ? 'AI'   : '白方');
+    const difficultyLabel = computed(() => ({
+      easy: '简单', medium: '中等', hard: '困难'
+    })[difficulty.value]);
 
-    // 格式化 mm:ss
+    const canUndo   = computed(() => moves.value.length > 0);
+    const isDraw    = computed(() => !winner.value && moves.value.length === GRID * GRID);
+    const finished  = computed(() => !!winner.value || isDraw.value);
+
     function fmtTime(ms) {
       const total = Math.max(0, Math.floor(ms / 1000));
       const m = String(Math.floor(total / 60)).padStart(2, '0');
@@ -412,7 +724,6 @@ createApp({
       return m + ':' + s;
     }
 
-    // 计时器：每秒累加到当前落子方
     function startTimer() {
       stopTimer();
       tickRef.value = setInterval(() => {
@@ -425,23 +736,44 @@ createApp({
       if (tickRef.value) { clearInterval(tickRef.value); tickRef.value = null; }
     }
 
-    // 棋子定位：viewBox 坐标 → 百分比
     function stoneStyle(s) {
       const cx = PAD + (s.x - 1) * CELL;
       const cy = PAD + (s.y - 1) * CELL;
       return {
         left: (cx / VB * 100) + '%',
         top:  (cy / VB * 100) + '%',
-        width: (CELL * 0.92 / VB * 100) + '%',
+        width:  (CELL * 0.92 / VB * 100) + '%',
         height: (CELL * 0.92 / VB * 100) + '%'
       };
     }
 
-    // 点击 → 找最近交叉点
+    // 统一落子（0-indexed）
+    function placeStone(x, y, player) {
+      if (board[x][y] !== 0) return false;
+      board[x][y] = player;
+      moves.value.push({ x: x + 1, y: y + 1, player });
+
+      const line = checkWin(x, y, player);
+      if (line) {
+        winner.value = player;
+        winLine.value = line.map(([nx, ny]) => ({ x: nx + 1, y: ny + 1 }));
+        showOver.value = true;
+        stopTimer();
+        return true;
+      }
+      if (moves.value.length === GRID * GRID) {
+        showOver.value = true;
+        stopTimer();
+        return true;
+      }
+      currentPlayer.value = player === 1 ? 2 : 1;
+      return true;
+    }
+
     function handleClick(e) {
       if (finished.value) return;
+      if (aiThinking.value) return;
       const rect = boardRef.value.getBoundingClientRect();
-      // 用 SVG 坐标：rect 宽度对应 viewBox VB
       const scale = VB / rect.width;
       const px = (e.clientX - rect.left) * scale;
       const py = (e.clientY - rect.top)  * scale;
@@ -450,40 +782,38 @@ createApp({
       if (gx < 1 || gx > GRID || gy < 1 || gy > GRID) return;
       if (board[gx - 1][gy - 1] !== 0) return;
 
-      board[gx - 1][gy - 1] = currentPlayer.value;
-      moves.value.push({ x: gx, y: gy, player: currentPlayer.value });
+      const placed = placeStone(gx - 1, gy - 1, currentPlayer.value);
+      if (!placed) return;
 
-      const line = checkWin(gx - 1, gy - 1, currentPlayer.value);
-      if (line) {
-        winner.value = currentPlayer.value;
-        winLine.value = line.map(([x, y]) => ({ x: x + 1, y: y + 1 }));
-        showOver.value = true;
-        stopTimer();
-        return;
+      // 人机模式：玩家走完后调度 AI
+      if (gameMode.value === 'pvai' && !finished.value && currentPlayer.value === 2) {
+        scheduleAIMove();
       }
-      if (moves.value.length === GRID * GRID) {
-        showOver.value = true; // 平局
-        stopTimer();
-        return;
-      }
-      currentPlayer.value = currentPlayer.value === 1 ? 2 : 1;
     }
 
-    // 4 方向五连判定（从落点向正反两侧各延伸 4 步）
+    function scheduleAIMove() {
+      if (aiTimeout.value) { clearTimeout(aiTimeout.value); aiTimeout.value = null; }
+      aiThinking.value = true;
+      const delay = 250 + Math.random() * 450; // 250~700ms
+      aiTimeout.value = setTimeout(() => {
+        aiTimeout.value = null;
+        const [ax, ay] = aiSelectMove(board, 2, difficulty.value);
+        placeStone(ax, ay, 2);
+        aiThinking.value = false;
+      }, delay);
+    }
+
     function checkWin(x, y, p) {
-      const dirs = [[1,0],[0,1],[1,1],[1,-1]];
-      for (const [dx, dy] of dirs) {
+      for (const [dx, dy] of DIRS) {
         const line = [[x, y]];
         for (let i = 1; i < 5; i++) {
           const nx = x + dx * i, ny = y + dy * i;
-          if (nx < 0 || nx >= GRID || ny < 0 || ny >= GRID) break;
-          if (board[nx][ny] !== p) break;
+          if (!inBoard(nx, ny) || board[nx][ny] !== p) break;
           line.push([nx, ny]);
         }
         for (let i = 1; i < 5; i++) {
           const nx = x - dx * i, ny = y - dy * i;
-          if (nx < 0 || nx >= GRID || ny < 0 || ny >= GRID) break;
-          if (board[nx][ny] !== p) break;
+          if (!inBoard(nx, ny) || board[nx][ny] !== p) break;
           line.unshift([nx, ny]);
         }
         if (line.length >= 5) return line.slice(0, 5);
@@ -492,14 +822,27 @@ createApp({
     }
 
     function undo() {
-      if (!canUndo.value || finished.value) return;
-      const last = moves.value.pop();
-      board[last.x - 1][last.y - 1] = 0;
-      currentPlayer.value = last.player;
+      if (!canUndo.value || finished.value || aiThinking.value) return;
+
+      if (gameMode.value === 'pvai' && moves.value.length >= 2) {
+        // 人机模式：撤销一步 AI + 一步玩家
+        const lastAi = moves.value.pop();
+        board[lastAi.x - 1][lastAi.y - 1] = 0;
+        const lastPlayer = moves.value.pop();
+        board[lastPlayer.x - 1][lastPlayer.y - 1] = 0;
+        currentPlayer.value = lastPlayer.player;
+      } else {
+        const last = moves.value.pop();
+        board[last.x - 1][last.y - 1] = 0;
+        currentPlayer.value = last.player;
+      }
       winLine.value = null;
       winner.value = 0;
     }
-    function restart() {
+
+    function resetGame() {
+      if (aiTimeout.value) { clearTimeout(aiTimeout.value); aiTimeout.value = null; }
+      aiThinking.value = false;
       for (let i = 0; i < GRID; i++)
         for (let j = 0; j < GRID; j++)
           board[i][j] = 0;
@@ -510,17 +853,51 @@ createApp({
       showOver.value = false;
       blackTime.value = 0;
       whiteTime.value = 0;
+    }
+
+    function restart() {
+      resetGame();
       startTimer();
     }
 
-    onMounted(() => startTimer());
-    onUnmounted(() => stopTimer());
+    function startPvp() {
+      resetGame();
+      gameMode.value = 'pvp';
+      startTimer();
+    }
+
+    function startPvai(diff) {
+      difficulty.value = diff;
+      resetGame();
+      gameMode.value = 'pvai';
+      startTimer();
+    }
+
+    function backToMenu() {
+      resetGame();
+      gameMode.value = 'menu';
+    }
+
+    function moveTagOf(m) {
+      const side = m.player === 1
+        ? (gameMode.value === 'pvai' ? '玩家' : '黑')
+        : (gameMode.value === 'pvai' ? 'AI'   : '白');
+      return side + ' ' + m.x + ',' + m.y;
+    }
+
+    onMounted(() => { /* 等用户选模式再启动计时器 */ });
+    onUnmounted(() => {
+      stopTimer();
+      if (aiTimeout.value) clearTimeout(aiTimeout.value);
+    });
 
     return {
       boardRef, board, currentPlayer, moves, winner, winLine, stars, showOver,
-      blackTime, whiteTime,
+      blackTime, whiteTime, gameMode, difficulty, difficultyLabel,
+      blackName, whiteName, aiThinking,
       canUndo, isDraw, finished,
-      stoneStyle, handleClick, undo, restart, fmtTime
+      fmtTime, stoneStyle, handleClick, undo, restart, moveTagOf,
+      startPvp, startPvai, backToMenu
     };
   }
 }).mount('#app');

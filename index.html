@@ -160,6 +160,16 @@
         box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
     }
 
+    .btn-play.online {
+        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        color: white;
+    }
+
+    .btn-play.online:hover {
+        background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+        box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+    }
+
     .icon {
         font-size: 18px;
     }
@@ -360,6 +370,9 @@
                 <p class="game-desc">经典的双人对弈棋类游戏，黑白双方交替落子，先在横、竖或斜线方向连成五子者获胜。规则简单，变化无穷。</p>
                 <div class="game-features">
                     <span class="game-feature highlight">15×15 标准棋盘</span>
+                    <span class="game-feature highlight">人机对战 (3 难度)</span>
+                    <span class="game-feature">本地双人对战</span>
+                    <span class="game-feature">联网实时对战</span>
                     <span class="game-feature">五连自动判定</span>
                     <span class="game-feature">悔棋功能</span>
                     <span class="game-feature">获胜高亮提示</span>
@@ -368,7 +381,11 @@
                 <div class="btn-container">
                     <a href="/gobang" class="btn-play gobang">
                         <span class="icon">♟️</span>
-                        <span>进入游戏</span>
+                        <span>本地对战</span>
+                    </a>
+                    <a href="https://gobang-pol.pages.dev/" target="_blank" rel="noopener" class="btn-play online">
+                        <span class="icon">🌐</span>
+                        <span>联网对战</span>
                     </a>
                 </div>
             </div>

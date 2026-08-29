@@ -20,6 +20,20 @@ const HTML_FILE = path.join(__dirname, 'loanCalculator.html');
 const args = process.argv.slice(2);
 const WRITE_MODE = args.includes('--write');
 const DRY_RUN = args.includes('--dry-run');
+const BACKUP_MODE = args.includes('--backup');
+
+function readCurrentLprValues(content) {
+  const pattern = /const\s+LPR_1Y\s*=\s*([\d.]+)\s*;[\s\S]*?const\s+LPR_5Y\s*=\s*([\d.]+)\s*;/m;
+  const match = content.match(pattern);
+  if (!match) {
+    throw new Error('未在 HTML 文件中找到 LPR 常量定义，请确认文件结构');
+  }
+
+  return {
+    lpr1y: Number(match[1]),
+    lpr5y: Number(match[2])
+  };
+}
 
 function fetchLPR() {
   return new Promise((resolve, reject) => {
@@ -40,31 +54,74 @@ function fetchLPR() {
   });
 }
 
+function replaceLprBlock(content, lpr1y, lpr5y) {
+  const blockPattern = /const\s+LPR_1Y\s*=\s*[\d.]+\s*;[\s\S]*?const\s+LPR_5Y\s*=\s*[\d.]+\s*;/m;
+  const replacement = `const LPR_1Y = ${lpr1y};  // 1年期 LPR（来源chinamoney.com.cn/api）\n            const LPR_5Y = ${lpr5y};  // 5年期以上 LPR（来源chinamoney.com.cn/api）`;
+
+  if (blockPattern.test(content)) {
+    return content.replace(blockPattern, replacement);
+  }
+
+  const lpr1Start = content.indexOf('const LPR_1Y');
+  const lpr5Start = content.indexOf('const LPR_5Y');
+
+  if (lpr1Start !== -1 && lpr5Start !== -1 && lpr5Start > lpr1Start) {
+    const firstSemi = content.indexOf(';', lpr1Start);
+    const secondSemi = content.indexOf(';', lpr5Start);
+    if (firstSemi !== -1 && secondSemi !== -1) {
+      const before = content.slice(0, lpr1Start);
+      const after = content.slice(secondSemi + 1);
+      return before + replacement + after;
+    }
+  }
+
+  throw new Error('未在 HTML 文件中找到 LPR 常量定义，请确认文件结构');
+}
+
 async function updateHTML(lpr1y, lpr5y) {
   const content = fs.readFileSync(HTML_FILE, 'utf8');
 
-  // 匹配 LPR 常量定义：const LPR_1Y = 3.xx; // ...\nconst LPR_5Y = 3.xx;
-  const pattern = /const LPR_1Y = [\d.]+;[\s\S]*?const LPR_5Y = [\d.]+;/;
-  const replacement = `const LPR_1Y = ${lpr1y};  // 1年期 LPR（来源chinamoney.com.cn/api）\n            const LPR_5Y = ${lpr5y};  // 5年期以上 LPR（来源chinamoney.com.cn/api）`;
-
-  if (!pattern.test(content)) {
-    console.error('⚠️  未在 HTML 文件中找到 LPR 常量定义，请确认文件结构');
+  let currentValues;
+  try {
+    currentValues = readCurrentLprValues(content);
+  } catch (err) {
+    console.error(`⚠️ ${err.message}`);
     process.exit(1);
   }
 
-  const newContent = content.replace(pattern, replacement);
-
-  if (DRY_RUN) {
-    console.log('📝 [dry-run] 拟更新为:');
+  if (currentValues.lpr1y === lpr1y && currentValues.lpr5y === lpr5y) {
+    console.log('ℹ️ 当前 LPR 值已是最新，无需更新。');
     console.log(`   LPR_1Y = ${lpr1y}`);
     console.log(`   LPR_5Y = ${lpr5y}`);
     return;
   }
 
+  let newContent;
+  try {
+    newContent = replaceLprBlock(content, lpr1y, lpr5y);
+  } catch (err) {
+    console.error(`⚠️ ${err.message}`);
+    process.exit(1);
+  }
+
+  if (DRY_RUN) {
+    console.log('📝 [dry-run] 拟更新为:');
+    console.log(`   LPR_1Y = ${lpr1y}`);
+    console.log(`   LPR_5Y = ${lpr5y}`);
+    console.log(`   旧值：LPR_1Y = ${currentValues.lpr1y}, LPR_5Y = ${currentValues.lpr5y}`);
+    return;
+  }
+
+  if (BACKUP_MODE) {
+    const backupPath = `${HTML_FILE}.bak`;
+    fs.copyFileSync(HTML_FILE, backupPath);
+    console.log(`💾 已备份原文件到 ${backupPath}`);
+  }
+
   fs.writeFileSync(HTML_FILE, newContent, 'utf8');
   console.log(`✅ 已更新 ${HTML_FILE}`);
-  console.log(`   LPR_1Y = ${lpr1y}`);
-  console.log(`   LPR_5Y = ${lpr5y}`);
+  console.log(`   旧值：LPR_1Y = ${currentValues.lpr1y}, LPR_5Y = ${currentValues.lpr5y}`);
+  console.log(`   新值：LPR_1Y = ${lpr1y}, LPR_5Y = ${lpr5y}`);
 }
 
 async function main() {

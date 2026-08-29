@@ -3963,6 +3963,7 @@
                     updateCalculations();
                 };
 
+<<<<<<< HEAD
                 // 首付验证（失焦时立即提示，用于商贷/组合贷直接输入首付的场景）
                 const validateDownPaymentOnBlur = () => {
                     if (loanType.value === 'commercial' || loanType.value === 'combined') {
@@ -3980,6 +3981,44 @@
                     } else if (loanType.value === 'provident') {
                         if (downPaymentPercent.value < 15) {
                             inputDownPaymentError.value = `首付比例不能低于15%`;
+=======
+
+            // LPR 利率（来源：中国货币网 https://www.chinamoney.com.cn/chinese/bklpr/）
+            // 如 LPR 利率调整，请同步修改以下两个常量
+            const LPR_1Y = 3.00;  // 1年期 LPR（来源chinamoney.com.cn/api）
+            const LPR_5Y = 3.50;  // 5年期以上 LPR（来源chinamoney.com.cn/api）  // 5年期以上 LPR（来源chinamoney.com.cn/api）  // 5年期以上 LPR（来源chinamoney.com.cn/api）  // 5年期以上 LPR（来源chinamoney.com.cn/api）  // 5年期以上 LPR（来源chinamoney.com.cn/api）  // 5年期以上 LPR（来源chinamoney.com.cn/api）  // 5年期以上 LPR（来源chinamoney.com.cn/api）  // 5年期以上 LPR（来源chinamoney.com.cn/api）  // 5年期以上 LPR（来源chinamoney.com.cn/api）  // 5年期以上 LPR（来源chinamoney.com.cn/api）  // 5年期以上 LPR
+
+            // 常用利率选项（包含 LPR 1Y 和 5Y）
+            const commercialRates = ref([2.8, 3.05, LPR_1Y, LPR_5Y, 3.1, 3.6]);
+            const providentRates = ref([2.1, 2.35, 2.6, 2.85, 3.1, 3.25]);
+
+            // 组合贷比例（商业部分占比的分子，范围 1-9，默认 2 表示 2:8）
+            const combinedCommercialPart = ref(2);
+
+            // 图表实例
+            let chartInstance = null;
+            const sliderTrack = ref(null);
+            let isDragging = false;
+
+            // 切换贷款类型时缓存当前首付，恢复新类型的上次输入值；无缓存时默认15%房价
+            const switchLoanType = (newType) => {
+                downPaymentCache[loanType.value] = inputDownPayment.value;
+                loanType.value = newType;
+                inputDownPayment.value = downPaymentCache[newType] !== null ? downPaymentCache[newType] : housePrice.value * 0.15;
+                updateCalculations();
+            };
+
+            // 首付验证（失焦时立即提示，用于商贷/组合贷直接输入首付的场景）
+            const validateDownPaymentOnBlur = () => {
+                if (loanType.value === 'commercial' || loanType.value === 'combined') {
+                    const minDown = housePrice.value * 0.15;
+                    const dp = inputDownPayment.value !== null ? parseFloat(inputDownPayment.value) : null;
+                    if (dp !== null && !isNaN(dp) && dp > 0) {
+                        if (dp < minDown) {
+                            inputDownPaymentError.value = `首付不能低于房价的15%（¥${formatCurrency(minDown)}）`;
+                        } else if (dp > housePrice.value) {
+                            inputDownPaymentError.value = '首付不能超过房价总额';
+>>>>>>> 37c44c9028529bfb49e47eadd18db56e1df87ea5
                         } else {
                             inputDownPaymentError.value = '';
                         }
